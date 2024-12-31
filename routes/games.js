@@ -82,26 +82,26 @@ router.get('/', async (req, res) => {
   router.put('/:encryptedId/questions/:questionId', async (req, res) => {
     try {
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
-      if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
-      }
+      if (!game) return res.status(404).json({ message: 'Spiel nicht gefunden' });
   
-      const question = game.questions.id(req.params.questionId); // Suche nach Fragen-_id
-      if (!question) {
-        return res.status(404).json({ message: 'Frage nicht gefunden' });
-      }
+      const question = game.questions.id(req.params.questionId);
+      if (!question) return res.status(404).json({ message: 'Frage nicht gefunden' });
   
-      // Aktualisiere Frage
+      // Aktualisiere Felder je nach Typ
       question.question = req.body.question || question.question;
       question.answer = req.body.answer || question.answer;
+      question.options = req.body.options || question.options;
+      question.imageUrl = req.body.imageUrl || question.imageUrl;
   
-      await game.save(); // Änderungen speichern
-      res.status(200).json(game);
+      await game.save();
+      res.status(200).json({ message: 'Frage erfolgreich aktualisiert', question });
     } catch (err) {
-      console.error('Fehler beim Bearbeiten der Frage:', err);
-      res.status(500).json({ message: err.message });
+      console.error('❌ Fehler beim Aktualisieren der Frage:', err);
+      res.status(500).json({ message: 'Interner Serverfehler', error: err.message });
     }
   });
+  
+  
   
 // Route: Spiel anhand der verschlüsselten ID abrufen
 router.get('/:encryptedId', async (req, res) => {
@@ -154,8 +154,6 @@ router.put('/games/encrypted/:encryptedId/questions/:questionId', async (req, re
     });
   }
 });
-
-
 
 // Route: Neues Spiel erstellen
 router.post('/', async (req, res) => {
@@ -213,7 +211,7 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
+/*
 // Frage hinzufügen
 router.post('/:id/questions', async (req, res) => {
     try {
@@ -257,7 +255,7 @@ router.put('/:id/questions/:questionId', async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   });
-  
+
   // Ranking für ein bestimmtes Spiel abrufen
     router.get('/:gameId/ranking', async (req, res) => {
     try {
@@ -272,6 +270,7 @@ router.put('/:id/questions/:questionId', async (req, res) => {
       res.status(500).json({ message: 'Interner Serverfehler beim Abrufen des Rankings' });
     }
   });
+    */
   // Ranking für ein bestimmtes Spiel abrufen
   router.get('/:encryptedId/ranking', async (req, res) => {
     try {
