@@ -59,49 +59,64 @@ router.get('/', async (req, res) => {
 
   // Frage hinzufügen
   router.post('/:encryptedId/questions', async (req, res) => {
+    console.log('########### addQestion 1 ###########');
     try {
-      // Finde das Spiel anhand der encryptedId
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
       if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
+  
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
       }
-
-      // Neue Frage hinzufügen
-      game.questions.push(req.body);
-
-      // Speichere das aktualisierte Spiel
+  
+      if (!req.body.question || req.body.question.trim() === '') {
+        return res.status(400).json({ message: '⚠️ Frage darf nicht leer sein.' });
+      }
+  
+      const newQuestion = {
+        question: req.body.question,
+        type: req.body.type,
+        options: req.body.options || [],
+        answer: req.body.answer || '',
+        imageUrl: req.body.imageUrl || '',
+      };
+      console.log('########### addQestion 2 ###########');
+      game.questions.push(newQuestion);
       await game.save();
-      res.status(201).json(game);
-    } catch (err) {
-      console.error('Fehler beim Hinzufügen der Frage:', err);
-      res.status(500).json({ message: err.message });
+  
+      res.status(201).json(newQuestion);
+      console.log('✅ Frage erfolgreich hinzugefügt');
+    } catch (error) {
+      console.error('❌ Fehler beim Hinzufügen der Frage:', error);
+      res.status(500).json({ message: error.message });
     }
   });
-
 
   router.put('/:encryptedId/questions/:questionId', async (req, res) => {
     try {
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
       if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
       }
   
-      const question = game.questions.id(req.params.questionId); // Suche nach Fragen-_id
+      const question = game.questions.id(req.params.questionId);
       if (!question) {
-        return res.status(404).json({ message: 'Frage nicht gefunden' });
+        return res.status(404).json({ message: '❌ Frage nicht gefunden' });
       }
   
-      // Aktualisiere Frage
+      // Aktualisiere Frage basierend auf dem Fragetyp
       question.question = req.body.question || question.question;
       question.answer = req.body.answer || question.answer;
+      question.options = req.body.options || question.options;
+      question.type = req.body.type || question.type;
+      question.imageUrl = req.body.imageUrl || question.imageUrl;
   
-      await game.save(); // Änderungen speichern
-      res.status(200).json(game);
-    } catch (err) {
-      console.error('Fehler beim Bearbeiten der Frage:', err);
-      res.status(500).json({ message: err.message });
+      await game.save();
+      res.status(200).json(question);
+    } catch (error) {
+      console.error('❌ Fehler beim Aktualisieren der Frage:', error);
+      res.status(500).json({ message: error.message });
     }
   });
+  
   
 // Route: Spiel anhand der verschlüsselten ID abrufen
 router.get('/:encryptedId', async (req, res) => {
@@ -214,64 +229,6 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// Frage hinzufügen
-router.post('/:id/questions', async (req, res) => {
-    try {
-      const game = await Game.findById(req.params.id);
-      if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
-      }
-  
-      // Neue Frage hinzufügen
-      game.questions.push(req.body);
-      await game.save();
-  
-      res.status(201).json(game);
-    } catch (err) {
-      console.error('Fehler beim Hinzufügen der Frage:', err);
-      res.status(500).json({ message: err.message });
-    }
-  });
-
-// Frage bearbeiten
-router.put('/:id/questions/:questionId', async (req, res) => {
-    try {
-      const game = await Game.findById(req.params.id);
-      if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
-      }
-  
-      const question = game.questions.id(req.params.questionId);
-      if (!question) {
-        return res.status(404).json({ message: 'Frage nicht gefunden' });
-      }
-  
-      // Frage aktualisieren
-      question.question = req.body.question || question.question;
-      question.answer = req.body.answer || question.answer;
-  
-      await game.save(); // Änderungen speichern
-      res.status(200).json(game);
-    } catch (err) {
-      console.error('Fehler beim Bearbeiten der Frage:', err);
-      res.status(500).json({ message: err.message });
-    }
-  });
-  
-  // Ranking für ein bestimmtes Spiel abrufen
-    router.get('/:gameId/ranking', async (req, res) => {
-    try {
-      const { gameId } = req.params;
-      const topResults = await Result.find({ gameId })
-        .sort({ duration: 1 }) // Nach kürzester Spielzeit sortieren
-        .limit(5); // Nur die Top 5 anzeigen
-  
-      res.json(topResults);
-    } catch (err) {
-      console.error('Fehler beim Abrufen des Rankings:', err);
-      res.status(500).json({ message: 'Interner Serverfehler beim Abrufen des Rankings' });
-    }
-  });
   // Ranking für ein bestimmtes Spiel abrufen
   router.get('/:encryptedId/ranking', async (req, res) => {
     try {
