@@ -14,11 +14,20 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://192.168.178.26:8080' // Füge deine lokale IP hinzu
+];
 
 // ✅ Middleware
 app.use(cors({
-  origin: 'http://localhost:8080', // Nur dein Frontend ist erlaubt
-  credentials: true, // Cookies und Header erlauben
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy does not allow access from this origin'));
+    }
+  }
 }));
 
 app.use(bodyParser.json());

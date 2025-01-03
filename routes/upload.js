@@ -18,12 +18,10 @@ const upload = multer({ storage });
 
 // ✅ Route zum Hochladen von Bildern
 router.post('/upload', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: '⚠️ Keine Datei hochgeladen' });
-  }
-  const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-  console.log('imageUrl: ################');
-  console.log(imageUrl);
+  // IP-Adresse statt localhost verwenden
+  const host = req.headers.host.replace('localhost', req.hostname);
+  const imageUrl = `${req.protocol}://${host}/uploads/${req.file.filename}`;
+  console.log('📸 Bild-URL:', imageUrl);
   res.json({ imageUrl });
 });
 
