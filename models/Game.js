@@ -19,6 +19,7 @@ const GameSchema = new mongoose.Schema({
   name: { type: String, required: true },
   ageGroup: { type: String, required: true },
   encryptedId: { type: String, required: true, unique: true },
+  description: { type: String, required: true },
   questions: [QuestionSchema], // Array von Fragen und Antworten
 });
 

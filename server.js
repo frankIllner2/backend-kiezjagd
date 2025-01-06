@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const authRoutes = require('./routes/auth'); 
+const adminRoutes = require('./routes/admin'); 
+
+
+
 
 // Routen
 const gameRoutes = require('./routes/games');
@@ -57,9 +62,12 @@ app.use('/api/games', gameRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api', uploadRoutes); 
-
+// Auth-Route hinzufügen
+app.use('/api/auth', authRoutes);
+// Admin-Route schützen
+app.use('/api/admin', adminRoutes);
 // Entferne doppelte Verwendung von uploadRoutes
-// app.use(uploadRoutes); <-- Das war doppelt und verursacht Konflikte
+
 
 // ✅ Health-Check Route
 app.get('/', (req, res) => {
