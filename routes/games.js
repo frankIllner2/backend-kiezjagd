@@ -43,6 +43,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ✅ Zwei zufällige Spiele abrufen
+router.get('/random', async (req, res) => {
+
+  try {
+    
+    const randomGames = await Game.aggregate([{ $sample: { size: 3 } }]);
+
+    if (!randomGames || randomGames.length === 0) {
+      return res.status(404).json({ message: 'Keine zufälligen Spiele gefunden' });
+    }
+
+    res.json(randomGames.map(game => game.encryptedId));
+  } catch (error) {
+    console.error('❌ Fehler beim Abrufen zufälliger Spiele:', error);
+    res.status(500).json({ message: 'Interner Serverfehler', error: error.message });
+  }
+});
+
   // Fragen für ein bestimmtes Spiel abrufen
   router.get('/:encryptedId/questions', async (req, res) => {
     try {
@@ -59,7 +77,7 @@ router.get('/', async (req, res) => {
 
   // Frage hinzufügen
   router.post('/:encryptedId/questions', async (req, res) => {
-    console.log('########### addQestion 1 ###########');
+    
     try {
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
       if (!game) {
@@ -117,13 +135,35 @@ router.get('/', async (req, res) => {
     }
   });
   
+  router.get('/:encryptedId/top5', async (req, res) => {
+    try {
+      // Spiel anhand der encryptedId abrufen
+      const game = await Game.findOne({ encryptedId: req.params.encryptedId });
+      if (!game) {
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden - /:encryptedId/top5' });
+      }
+  
+      // Top 5 Ergebnisse abrufen
+      const topResults = await Result.find({ gameId: req.params.encryptedId })
+        .sort({ duration: 1 }) // Sortiere nach kürzester Spielzeit
+        .limit(5); // Beschränke auf die Top 5
+  
+      res.json({
+        gameName: game.name,
+        topResults,
+      });
+    } catch (error) {
+      console.error('❌ Fehler beim Abrufen der Top 5 Ergebnisse:', error);
+      res.status(500).json({ message: '❌ Interner Serverfehler', error: error.message });
+    }
+  });
   
 // Route: Spiel anhand der verschlüsselten ID abrufen
 router.get('/:encryptedId', async (req, res) => {
   try {
     const game = await Game.findOne({ encryptedId: req.params.encryptedId });
     if (!game) {
-      return res.status(404).json({ message: 'Spiel nicht gefunden' });
+      return res.status(404).json({ message: 'Spiel nicht gefunden - /:encryptedId' });
     }
     res.json(game);
   } catch (err) {
@@ -136,7 +176,7 @@ router.get('/:encryptedId', async (req, res) => {
 router.put('/games/encrypted/:encryptedId/questions/:questionId', async (req, res) => {
   const { encryptedId, questionId } = req.params;
   const updatedQuestion = req.body;
-  console.log('test');
+  
   try {
     // Spiel anhand encryptedId finden
     const game = await Game.findOne({ encryptedId });
@@ -229,19 +269,19 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-  // Ranking für ein bestimmtes Spiel abrufen
-  router.get('/:encryptedId/ranking', async (req, res) => {
-    try {
-      const topResults = await Result.find({ gameId: req.params.encryptedId })
-        .sort({ duration: 1 }) // Nach kürzester Spielzeit sortieren
-        .limit(5); // Top 5 anzeigen
+// Ranking für ein bestimmtes Spiel abrufen
+router.get('/:encryptedId/ranking', async (req, res) => {
+  try {
+    const topResults = await Result.find({ gameId: req.params.encryptedId })
+      .sort({ duration: 1 }) // Nach kürzester Spielzeit sortieren
+      .limit(5); // Top 5 anzeigen
 
-      res.json(topResults);
-    } catch (err) {
-      console.error('Fehler beim Abrufen des Rankings:', err);
-      res.status(500).json({ message: 'Interner Serverfehler beim Abrufen des Rankings' });
-    }
-  });
+    res.json(topResults);
+  } catch (err) {
+    console.error('Fehler beim Abrufen des Rankings:', err);
+    res.status(500).json({ message: 'Interner Serverfehler beim Abrufen des Rankings' });
+  }
+});
 
 // Frage löschen
 router.delete('/:encryptedId/questions/:questionId', async (req, res) => {
@@ -265,7 +305,6 @@ router.delete('/:encryptedId/questions/:questionId', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 
 module.exports = router;
