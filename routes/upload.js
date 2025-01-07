@@ -8,7 +8,7 @@ const router = express.Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = process.env.NODE_ENV === 'production' 
-      ? '/mnt/data/uploads' // Produktionspfad für Render
+      ? '/var/data/images' // Produktionspfad für Render
       : path.join(__dirname, '../uploads'); // Lokaler Pfad
     cb(null, uploadPath);
   },
