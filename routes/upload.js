@@ -31,7 +31,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
 
     // Bild-URL basierend auf der Umgebung erstellen
     const imageUrl = process.env.NODE_ENV === 'production'
-      ? `https://kiezjagd.de/uploads/${req.file.filename}` // Produktions-URL
+      ? `https://backend-kiezjagd.onrender.com/uploads/${req.file.filename}` // Produktions-URL
       : `${req.protocol}://${host}/uploads/${req.file.filename}`; // Lokale URL
 
     console.log('📸 Bild-URL:', imageUrl);

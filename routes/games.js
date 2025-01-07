@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 
 // Funktion: Link per E-Mail senden
 async function sendGameLink(email, game) {
-  const link = `https://kiezjagd.de/game/${game.encryptedId}`;
+  const link = `https://backend-kiezjagd.onrender.com//game/${game.encryptedId}`;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
