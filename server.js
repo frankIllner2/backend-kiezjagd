@@ -38,8 +38,12 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Statisches Verzeichnis für Uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ✅ Statisches Verzeichnis für Uploads
+const uploadPath = process.env.NODE_ENV === 'production'
+  ? '/mnt/data/uploads' // Produktionspfad für Render
+  : path.join(__dirname, 'uploads'); // Lokaler Pfad
+
+app.use('/uploads', express.static(uploadPath));
 
 // ✅ MongoDB-Verbindung
 mongoose.connect(process.env.MONGO_URI, {
