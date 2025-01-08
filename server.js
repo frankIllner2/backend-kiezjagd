@@ -3,20 +3,22 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+require('dotenv').config();
+
+// ✅ Routen-Import
 const authRoutes = require('./routes/auth'); 
 const adminRoutes = require('./routes/admin'); 
-
-
-
-
-// Routen
+const checkoutRoutes = require('./routes/checkout');
+const orderRoutes = require('./routes/order');
 const gameRoutes = require('./routes/games');
 const resultRoutes = require('./routes/results');
 const teamRoutes = require('./routes/teams');
 const uploadRoutes = require('./routes/upload');
 
-require('dotenv').config();
+// ✅ CronJobs ausführen
+require('./cronJobs');
 
+// ✅ Express-Setup
 const app = express();
 const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
@@ -41,9 +43,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ✅ Statisches Verzeichnis für Uploads
 const uploadPath = process.env.NODE_ENV === 'production'
-  ? '/var/data/images' // Produktionspfad für Render
+  ? '/var/data/images' // Produktionspfad
   : path.join(__dirname, 'uploads'); // Lokaler Pfad
-
 app.use('/uploads', express.static(uploadPath));
 
 // ✅ MongoDB-Verbindung
@@ -54,30 +55,23 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log('✅ MongoDB verbunden!'))
   .catch(err => {
     console.error('❌ MongoDB-Verbindungsfehler:', err);
-    process.exit(1); // Beendet den Prozess bei fehlgeschlagener Verbindung
+    process.exit(1);
   });
-
-// ✅ Health-Check Route (zum Testen, ob Server läuft)
-app.get('/', (req, res) => {
-  res.status(200).send('✅ API läuft!');
-});
-
-// ✅ Routen
-app.use('/api/games', gameRoutes);
-app.use('/api/results', resultRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api', uploadRoutes); 
-// Auth-Route hinzufügen
-app.use('/api/auth', authRoutes);
-// Admin-Route schützen
-app.use('/api/admin', adminRoutes);
-// Entferne doppelte Verwendung von uploadRoutes
-
 
 // ✅ Health-Check Route
 app.get('/', (req, res) => {
   res.status(200).send('✅ API läuft!');
 });
+
+// ✅ Routen
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/checkout', checkoutRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/results', resultRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api', uploadRoutes);
+app.use('/api/order', orderRoutes);
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen
 app.use((req, res) => {

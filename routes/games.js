@@ -2,35 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Game = require('../models/Game');
 const Result = require('../models/Result');
-const nodemailer = require('nodemailer');
+
 const crypto = require('crypto');
 
-// E-Mail-Versand einrichten
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER, // Deine E-Mail
-    pass: process.env.EMAIL_PASS, // Dein Passwort
-  },
-});
-
-// Funktion: Link per E-Mail senden
-async function sendGameLink(email, game) {
-  const link = `https://backend-kiezjagd.onrender.com//game/${game.encryptedId}`;
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Ihr Kiezjagd-Spiel-Link',
-    text: `Hallo,\n\nHier ist der Link zu Ihrem Spiel: ${link}\n\nViel Spaß!\nIhr Kiezjagd-Team`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('E-Mail erfolgreich gesendet.');
-  } catch (error) {
-    console.error('Fehler beim Senden der E-Mail:', error);
-  }
-}
 
 // Route: Alle Spiele abrufen
 router.get('/', async (req, res) => {
