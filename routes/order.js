@@ -15,9 +15,16 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 
   try {
-    console.log('✅ Eingaben gültig, Bestellung wird erstellt...');
+    // ✅ Bestellung vormerken (MongoDB)
+    const order = new Order({
+      gameId,
+      email,
+      paymentStatus: 'pending',
+    });
+    await order.save();
+    console.log('✅ Bestellung gespeichert:', order);
 
-    // 🔑 Stripe-Checkout-Session erstellen
+    // ✅ Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
@@ -32,22 +39,15 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/success?session_id=${session.id}`,
+      success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
     });
 
-    console.log('✅ Stripe-Session erstellt:', session.id);
-
-    // 🔄 Bestellung vormerken mit Stripe-Session-ID
-    const order = new Order({
-      gameId,
-      email,
-      sessionId: session.id, // Stripe-Session-ID speichern
-      paymentStatus: 'pending',
-    });
-
+    // ✅ Session-ID aktualisieren
+    order.sessionId = session.id;
     await order.save();
-    console.log('✅ Bestellung erfolgreich gespeichert:', order);
+
+    console.log('✅ Stripe-Session erstellt:', session.id);
 
     res.json({ url: session.url });
   } catch (error) {
@@ -58,44 +58,28 @@ router.post('/create-checkout-session', async (req, res) => {
 
 // ✅ Bestellung nach Zahlung prüfen
 router.post('/verify-payment', async (req, res) => {
-  console.log('### verify-payment ###');
   const { sessionId } = req.body;
 
-  if (!sessionId) {
-    console.error('⚠️ Fehlende Session-ID');
-    return res.status(400).json({ message: '⚠️ Session-ID ist erforderlich.' });
-  }
-
   try {
-    // 🔍 Stripe-Session abrufen
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== 'paid') {
-      console.warn('❌ Zahlung nicht erfolgreich:', session.payment_status);
-      return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich.' });
+      return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich' });
     }
 
-    console.log('✅ Zahlung erfolgreich:', session.customer_email);
-
-    // 📦 Bestellung aktualisieren
     const order = await Order.findOneAndUpdate(
-      { sessionId },
-      { paymentStatus: 'paid' },
-      { new: true }
+      { sessionId: sessionId },
+      { paymentStatus: 'paid' }
     );
 
-    if (!order) {
-      console.error('❌ Bestellung nicht gefunden für Session-ID:', sessionId);
-      return res.status(404).json({ message: '❌ Bestellung nicht gefunden.' });
+    if (order) {
+      await sendGameLink(order.email, order.gameId);
+      res.json({ message: '✅ Spiel-Link gesendet' });
+    } else {
+      res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
     }
-
-    // 📧 Spiel-Link senden
-    await sendGameLink(order.email, order.gameId);
-    console.log('✅ Spiel-Link gesendet an:', order.email);
-
-    res.json({ message: '✅ Spiel-Link erfolgreich gesendet.' });
   } catch (error) {
-    console.error('❌ Fehler bei Zahlungsprüfung:', error.message);
+    console.error('❌ Fehler bei Zahlungsprüfung:', error);
     res.status(500).json({ error: error.message });
   }
 });
