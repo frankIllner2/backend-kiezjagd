@@ -122,7 +122,7 @@ router.get('/order-status/:sessionId', async (req, res) => {
         gameId: order.gameId,
         email: order.email,
         timestamp: order.createdAt,
-        gameName: order.gameName,
+        gameName: order.gameName || 'Unbekanntes Spiel',
       },
       gameLink,
     });
