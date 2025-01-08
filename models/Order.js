@@ -7,6 +7,8 @@ const OrderSchema = new mongoose.Schema({
   startTime: { type: Date },
   endTime: { type: Date },
   isExpired: { type: Boolean, default: false },
+  sessionId: { type: String }, // Stripe-Session-ID hinzufügen
+  createdAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Order', OrderSchema);
