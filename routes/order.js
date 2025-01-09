@@ -6,9 +6,9 @@ const { sendGameLink } = require('../services/emailService');
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
-  
+  console.log('##########gameId##########');
   const { gameId, email } = req.body;
-
+  console.log(gameId);
   if (!email || !gameId) {
     console.error('⚠️ Fehlende E-Mail oder Spiel-ID:', { email, gameId });
     return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich.' });
