@@ -71,7 +71,9 @@ router.post('/verify-payment', async (req, res) => {
       { sessionId: sessionId },
       { paymentStatus: 'paid' }
     );
-
+    console.log('######### order email ###########');
+    console.log(order.email);
+    console.log(order.gameId);
     if (order) {
       await sendGameLink(order.email, order.gameId);
       res.json({ message: '✅ Spiel-Link gesendet' });
