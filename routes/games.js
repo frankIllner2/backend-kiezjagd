@@ -184,8 +184,6 @@ router.put('/games/encrypted/:encryptedId/questions/:questionId', async (req, re
   }
 });
 
-
-
 // Route: Neues Spiel erstellen
 router.post('/', async (req, res) => {
   try {
@@ -200,11 +198,6 @@ router.post('/', async (req, res) => {
 
     const newGame = await game.save(); // Spiel speichern
     console.log('Spiel erfolgreich gespeichert:', newGame);
-
-    // Link per E-Mail senden, falls E-Mail vorhanden
-    if (req.body.email) {
-      await sendGameLink(req.body.email, newGame);
-    }
 
     res.status(201).json(newGame); // Erfolgreich erstellt
   } catch (err) {

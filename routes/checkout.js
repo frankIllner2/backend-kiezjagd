@@ -23,12 +23,13 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-
+        console.log('gameId');
+        console.log(session.metadata.gameId);
         try {
           await Order.findOneAndUpdate(
-            { email: session.customer_email, gameId: session.metadata.gameId },
-            { paymentStatus: 'paid' },
-            { new: true }
+            { sessionId: session.id }, // Suche nach der Session-ID
+            { paymentStatus: 'paid' }, // Update auf 'paid'
+            { new: true } // Gibt das aktualisierte Dokument zurück
           );
           console.log('✅ Zahlung erfolgreich, Bestellung aktualisiert');
         } catch (error) {
@@ -62,7 +63,7 @@ router.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'eur',
             product_data: { name: `Spiel-ID: ${gameId}` },
-            unit_amount: 1000, // Preis in Cent
+            unit_amount: 500, // Preis in Cent
           },
           quantity: 1,
         }],
