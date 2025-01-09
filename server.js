@@ -23,6 +23,10 @@ require('./cronJobs');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ✅ Stripe Webhook Middleware (muss vor JSON-Payload geladen werden)
+app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
+
+
 // ✅ CORS-Konfiguration
 const allowedOrigins = [
   'https://www.kiezjagd.de',
@@ -43,9 +47,6 @@ app.use(cors({
 // ✅ Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// ✅ Stripe Webhook Middleware (muss vor JSON-Payload geladen werden)
-app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
 
 // ✅ Statisches Verzeichnis für Uploads
 const uploadPath = process.env.NODE_ENV === 'production'

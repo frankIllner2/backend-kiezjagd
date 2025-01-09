@@ -4,10 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
 
 // ✅ Middleware für rohe Stripe-Payloads
-router.post(
-  '/webhook',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
+router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
