@@ -56,6 +56,37 @@ router.post('/create-checkout-session', async (req, res) => {
   }
 });
 
+// ✅ Bestellung nach Zahlung prüfen
+router.post('/verify-payment', async (req, res) => {
+  const { sessionId } = req.body;
+  console.log('########### verify payment ##########');
+  console.log(sessionId);
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status !== 'paid') {
+      return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich' });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { sessionId: sessionId },
+      { paymentStatus: 'paid' }
+    );
+    console.log('######### order email ###########');
+    console.log(order.email);
+    console.log(order.gameId);
+    if (order) {
+      await sendGameLink(order.email, order.gameId);
+      res.json({ message: '✅ Spiel-Link gesendet' });
+    } else {
+      res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
+    }
+  } catch (error) {
+    console.error('❌ Fehler bei Zahlungsprüfung:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ✅ Bestellstatus abrufen
 router.get('/order-status/:sessionId', async (req, res) => {
   try {

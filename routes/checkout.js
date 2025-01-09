@@ -27,12 +27,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         console.log('gameId');
         console.log(session.metadata.gameId);
         try {
-          await Order.findOneAndUpdate(
+          const order = await Order.findOneAndUpdate(
             { sessionId: session.id }, // Suche nach der Session-ID
             { paymentStatus: 'paid' }, // Update auf 'paid'
             { new: true } // Gibt das aktualisierte Dokument zurück
           );
-          if (Order) {
+          if (order) {
             console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
             await sendGameLink(order.email, order.gameId);
           } else {
