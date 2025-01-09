@@ -6,7 +6,7 @@ const { sendGameLink } = require('../services/emailService');
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
-  console.log('### create-checkout-session ###');
+  
   const { gameId, email } = req.body;
 
   if (!email || !gameId) {

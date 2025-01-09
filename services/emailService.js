@@ -1,35 +1,28 @@
 const nodemailer = require('nodemailer');
-const crypto = require('crypto');
 
-// 📧 Transporter einrichten
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: process.env.EMAIL_SECURE === 'true', // STARTTLS
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-// 📧 E-Mail mit verschlüsseltem Link senden
 async function sendGameLink(email, gameId) {
+  const gameLink = `${process.env.FRONTEND_URL}/game/${gameId}?email=${encodeURIComponent(email)}`;
+
   try {
-    const cipher = crypto.createCipheriv('aes-256-cbc', process.env.ENCRYPTION_KEY, process.env.ENCRYPTION_IV);
-    let encryptedEmail = cipher.update(email, 'utf8', 'hex');
-    encryptedEmail += cipher.final('hex');
-
-    const link = `${process.env.FRONTEND_URL}/game/${gameId}?email=${encodeURIComponent(encryptedEmail)}`;
-
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Ihr Kiezjagd-Spiel-Link',
-      text: `Hallo,\n\nHier ist der Link zu Ihrem Spiel: ${link}\n\nViel Spaß!\nIhr Kiezjagd-Team`,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log('✅ E-Mail erfolgreich gesendet');
+      subject: '🎮 Dein Kiezjagd-Spiel-Link',
+      text: `Hallo!\n\nHier ist dein Zugang zum Spiel:\n${gameLink}\n\nViel Spaß!\nDein Kiezjagd-Team`,
+    });
+    console.log('✅ E-Mail erfolgreich gesendet an:', email);
   } catch (error) {
-    console.error('❌ Fehler beim E-Mail-Versand:', error);
+    console.error('❌ Fehler beim Senden der E-Mail:', error.message);
     throw error;
   }
 }
