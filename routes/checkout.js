@@ -32,7 +32,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             { paymentStatus: 'paid' }, // Update auf 'paid'
             { new: true } // Gibt das aktualisierte Dokument zurück
           );
-          if (order) {
+          if (Order) {
             console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
             await sendGameLink(order.email, order.gameId);
           } else {
