@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
-const { sendGameLink } = require('../services/emailService');
+
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
@@ -52,37 +52,6 @@ router.post('/create-checkout-session', async (req, res) => {
     res.json({ url: session.url });
   } catch (error) {
     console.error('❌ Fehler bei Stripe-Checkout:', error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ✅ Bestellung nach Zahlung prüfen
-router.post('/verify-payment', async (req, res) => {
-  const { sessionId } = req.body;
-  console.log('########### verify payment ##########');
-  console.log(sessionId);
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.payment_status !== 'paid') {
-      return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich' });
-    }
-
-    const order = await Order.findOneAndUpdate(
-      { sessionId: sessionId },
-      { paymentStatus: 'paid' }
-    );
-    console.log('######### order email ###########');
-    console.log(order.email);
-    console.log(order.gameId);
-    if (order) {
-      await sendGameLink(order.email, order.gameId);
-      res.json({ message: '✅ Spiel-Link gesendet' });
-    } else {
-      res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
-    }
-  } catch (error) {
-    console.error('❌ Fehler bei Zahlungsprüfung:', error);
     res.status(500).json({ error: error.message });
   }
 });

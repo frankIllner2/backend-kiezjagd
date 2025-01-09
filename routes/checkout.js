@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
+const { sendGameLink } = require('../services/emailService');
 
 // ✅ Middleware für rohe Stripe-Payloads
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -31,6 +32,13 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             { paymentStatus: 'paid' }, // Update auf 'paid'
             { new: true } // Gibt das aktualisierte Dokument zurück
           );
+          if (order) {
+            console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
+            await sendGameLink(order.email, order.gameId);
+          } else {
+            console.warn('❌ Keine Bestellung mit dieser Session-ID gefunden.');
+          }
+          
           console.log('✅ Zahlung erfolgreich, Bestellung aktualisiert');
         } catch (error) {
           console.error('❌ Fehler beim Aktualisieren der Bestellung:', error.message);
