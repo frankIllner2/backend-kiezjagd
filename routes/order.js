@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Order = require('../models/Order');
 const Game = require('../models/Game');
+const Order = require('../models/Order');
+
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
@@ -14,20 +15,23 @@ router.post('/create-checkout-session', async (req, res) => {
     return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich.' });
   }
 
-  // 🆕 Spielnamen aus der Game-Datenbank abrufen
-  const game = await Game.findOne({ encryptedId: gameId });
-  if (!game) {
-    return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
-  }
-  console.log( game.name);
+
   try {
+    // 🆕 Spielnamen aus der Game-Datenbank abrufen
+    const game = await Game.findOne({ encryptedId: gameId });
+    if (!game) {
+      return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+    }
+    console.log( game.name);
+
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
       gameId,
       email,
       gameName: game.name,
       paymentStatus: 'pending',
-      sessionId: session.id, // Speichere die Stripe-Session-ID
+      sessionId: null,
+    
     });
     await order.save();
     console.log('✅ Bestellung gespeichert:', order);
@@ -36,6 +40,7 @@ router.post('/create-checkout-session', async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
+      metadata: { gameId },
       line_items: [
         {
           price_data: {
@@ -54,7 +59,6 @@ router.post('/create-checkout-session', async (req, res) => {
     // ✅ Session-ID aktualisieren
     order.sessionId = session.id;
     await order.save();
-
     console.log('✅ Stripe-Session erstellt:', session.id);
 
     res.json({ url: session.url });
