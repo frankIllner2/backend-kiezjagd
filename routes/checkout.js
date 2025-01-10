@@ -25,7 +25,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-        console.log('gameId');
+        console.log('gameID');
         console.log(session.metadata.gameId);
         try {
           const order = await Order.findOneAndUpdate(
@@ -35,7 +35,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           );
 
           // 🆕 Spielnamen aus der Game-Datenbank abrufen
-          const game = await Game.findOne({ encryptedId: gameId });
+          const game = await Game.findOne({ encryptedId: session.metadata.gameId });
           if (!game) {
             return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
           }
