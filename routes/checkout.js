@@ -70,7 +70,7 @@ router.post('/create-checkout-session', async (req, res) => {
         line_items: [{
           price_data: {
             currency: 'eur',
-            product_data: { name: `Spiel-ID: ${gameId}` },
+            product_data: { name: game.name },
             unit_amount: 500, // Preis in Cent
           },
           quantity: 1,
@@ -83,6 +83,7 @@ router.post('/create-checkout-session', async (req, res) => {
       // Bestellung speichern, inklusive sessionId
       const order = new Order({
         gameId,
+        gameName: game.name,
         email,
         paymentStatus: 'pending',
         sessionId: session.id, // Speichere die Stripe-Session-ID

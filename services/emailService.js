@@ -12,15 +12,15 @@ const transporter = nodemailer.createTransport({
   logger: true, // Protokolliert SMTP-Kommunikation
 });
 
-async function sendGameLink(email, gameId) {
+async function sendGameLink(email, gameId, gameName) {
   const link = `${process.env.FRONTEND_URL}/game/${gameId}`;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: '🎮 Dein Spiel-Link für Kiezjagd',
-    text: `Hallo,\n\nHier ist der Link zu deinem Spiel: ${link}\n\nViel Spaß beim Spielen!\nDein Kiezjagd-Team`,
+    subject: `🎮 Dein Spiel "${gameName}" wartet auf dich!`, // 🆕 Spielname im Betreff
+    text: `Hallo,\n\nHier ist der Link zu deinem Spiel "${gameName}":\n${link}\n\nViel Spaß!\nDein Kiezjagd-Team`,
   };
-
+  
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log('✅ E-Mail erfolgreich gesendet:', info.response);
