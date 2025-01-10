@@ -24,6 +24,7 @@ router.post('/create-checkout-session', async (req, res) => {
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
       gameId,
+      gameName: game.name,
       email,
       paymentStatus: 'pending',
     });
@@ -42,8 +43,7 @@ router.post('/create-checkout-session', async (req, res) => {
             unit_amount: 500,
           },
           quantity: 1,
-        },
-      ],
+        },],
       mode: 'payment',
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
