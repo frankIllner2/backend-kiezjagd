@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
 const { sendGameLink } = require('../services/emailService');
+const Game = require('../models/Game');
 
 // ✅ Middleware für rohe Stripe-Payloads
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -32,9 +33,16 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             { paymentStatus: 'paid' }, // Update auf 'paid'
             { new: true } // Gibt das aktualisierte Dokument zurück
           );
+
+          // 🆕 Spielnamen aus der Game-Datenbank abrufen
+          const game = await Game.findOne({ encryptedId: gameId });
+          if (!game) {
+            return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+          }
+
           if (order) {
             console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
-            await sendGameLink(order.email, order.gameId);
+            await sendGameLink(order.email, order.gameId, game.gameName);
           } else {
             console.warn('❌ Keine Bestellung mit dieser Session-ID gefunden.');
           }
@@ -62,7 +70,13 @@ router.post('/create-checkout-session', async (req, res) => {
       if (!email || !gameId) {
         return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich' });
       }
-  
+
+      // 🆕 Spielnamen aus der Game-Datenbank abrufen
+      const game = await Game.findOne({ encryptedId: gameId });
+      if (!game) {
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+      }
+    
       // Stripe-Session erstellen
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],

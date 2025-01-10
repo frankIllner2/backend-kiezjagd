@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Order = require('../models/Order');
-
+const Game = require('../models/Game');
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
@@ -12,6 +12,12 @@ router.post('/create-checkout-session', async (req, res) => {
   if (!email || !gameId) {
     console.error('⚠️ Fehlende E-Mail oder Spiel-ID:', { email, gameId });
     return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich.' });
+  }
+
+  // 🆕 Spielnamen aus der Game-Datenbank abrufen
+  const game = await Game.findOne({ encryptedId: gameId });
+  if (!game) {
+    return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
   }
 
   try {
@@ -32,8 +38,8 @@ router.post('/create-checkout-session', async (req, res) => {
         {
           price_data: {
             currency: 'eur',
-            product_data: { name: `Spiel-ID: ${gameId}` },
-            unit_amount: 1000,
+            product_data: { name: game.name },
+            unit_amount: 500,
           },
           quantity: 1,
         },
@@ -73,8 +79,6 @@ router.post('/verify-payment', async (req, res) => {
       { paymentStatus: 'paid' }
     );
     console.log('######### order email ###########');
-    console.log(order.email);
-    console.log(order.gameId);
     if (order) {
       await sendGameLink(order.email, order.gameId);
       res.json({ message: '✅ Spiel-Link gesendet' });
