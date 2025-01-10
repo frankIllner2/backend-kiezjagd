@@ -30,6 +30,7 @@ app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
 // ✅ CORS-Konfiguration
 const allowedOrigins = [
   'https://www.kiezjagd.de',
+  'https://kiezjagd.de',
   'https://frontend-kiezjagd.vercel.app',
   'http://localhost:8080', 
 ];

@@ -19,13 +19,13 @@ router.post('/create-checkout-session', async (req, res) => {
   if (!game) {
     return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
   }
-
+  console.log( game.name);
   try {
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
       gameId,
-      gameName: game.name,
       email,
+      gameName: game.name,
       paymentStatus: 'pending',
     });
     await order.save();
@@ -43,7 +43,8 @@ router.post('/create-checkout-session', async (req, res) => {
             unit_amount: 500,
           },
           quantity: 1,
-        },],
+        },
+      ],
       mode: 'payment',
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
@@ -79,6 +80,8 @@ router.post('/verify-payment', async (req, res) => {
       { paymentStatus: 'paid' }
     );
     console.log('######### order email ###########');
+    console.log(order.email);
+    console.log(order.gameId);
     if (order) {
       await sendGameLink(order.email, order.gameId);
       res.json({ message: '✅ Spiel-Link gesendet' });
