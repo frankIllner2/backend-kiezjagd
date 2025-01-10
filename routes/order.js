@@ -27,6 +27,7 @@ router.post('/create-checkout-session', async (req, res) => {
       email,
       gameName: game.name,
       paymentStatus: 'pending',
+      sessionId: session.id, // Speichere die Stripe-Session-ID
     });
     await order.save();
     console.log('✅ Bestellung gespeichert:', order);
