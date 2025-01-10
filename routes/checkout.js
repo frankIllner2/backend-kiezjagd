@@ -62,55 +62,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 );
 
-// ✅ Stripe-Checkout starten
-router.post('/create-checkout-session', async (req, res) => {
-    const { gameId, email } = req.body;
-  
-    try {
-      if (!email || !gameId) {
-        return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich' });
-      }
-
-      // 🆕 Spielnamen aus der Game-Datenbank abrufen
-      const game = await Game.findOne({ encryptedId: gameId });
-      if (!game) {
-        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
-      }
-    
-      // Stripe-Session erstellen
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        customer_email: email,
-        line_items: [{
-          price_data: {
-            currency: 'eur',
-            product_data: { name: game.name },
-            unit_amount: 500, // Preis in Cent
-          },
-          quantity: 1,
-        }],
-        mode: 'payment',
-        success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/cancel`,
-      });
-  
-      // Bestellung speichern, inklusive sessionId
-      const order = new Order({
-        gameId,
-        gameName: game.name,
-        email,
-        paymentStatus: 'pending',
-        sessionId: session.id, // Speichere die Stripe-Session-ID
-      });
-      await order.save();
-  
-      res.json({ url: session.url });
-    } catch (error) {
-      console.error('❌ Fehler beim Erstellen der Stripe-Session:', error);
-      res.status(500).json({ error: error.message });
-    }
-});
-
 // ✅ Route: Bestellung überprüfen (Optional für Frontend-Validierung)
 router.get('/order-status/:sessionId', async (req, res) => {
     try {
