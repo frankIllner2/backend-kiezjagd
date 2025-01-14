@@ -7,7 +7,7 @@ const Order = require('../models/Order');
 
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
-  console.log('##########gameId##########');
+  
   const { gameId, email } = req.body;
   console.log(gameId);
   if (!email || !gameId) {
@@ -24,6 +24,10 @@ router.post('/create-checkout-session', async (req, res) => {
     }
     console.log( game.name);
 
+    // ✅ Endzeit für den Link berechnen (5 Minuten für Testzwecke)
+    const now = new Date();
+    const endTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 Minuten ab jetzt
+    
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
       gameId,
@@ -31,7 +35,7 @@ router.post('/create-checkout-session', async (req, res) => {
       gameName: game.name,
       paymentStatus: 'pending',
       sessionId: null,
-    
+      endTime
     });
     await order.save();
     console.log('✅ Bestellung gespeichert:', order);
@@ -71,8 +75,7 @@ router.post('/create-checkout-session', async (req, res) => {
 // ✅ Bestellung nach Zahlung prüfen
 router.post('/verify-payment', async (req, res) => {
   const { sessionId } = req.body;
-  console.log('########### verify payment ##########');
-  console.log(sessionId);
+
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -84,9 +87,7 @@ router.post('/verify-payment', async (req, res) => {
       { sessionId: sessionId },
       { paymentStatus: 'paid' }
     );
-    console.log('######### order email ###########');
-    console.log(order.email);
-    console.log(order.gameId);
+ 
     if (order) {
       await sendGameLink(order.email, order.gameId);
       res.json({ message: '✅ Spiel-Link gesendet' });
@@ -96,6 +97,33 @@ router.post('/verify-payment', async (req, res) => {
   } catch (error) {
     console.error('❌ Fehler bei Zahlungsprüfung:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+
+// ✅ Route: Spiel-Link überprüfen
+// ✅ Route: Link-Gültigkeit prüfen
+router.get('/validate-link/:gameId', async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const order = await Order.findOne({ gameId });
+
+    if (!order) {
+      return res.status(404).json({ message: '❌ Spiel nicht gefunden.' });
+    }
+
+    const now = new Date();
+
+    // Prüfung auf Ablaufdatum
+    if (order.isExpired || order.endTime < now) {
+      return res.status(410).json({ message: '❌ Der Link ist abgelaufen.' });
+    }
+
+    res.json({ message: '✅ Der Link ist gültig.', order });
+  } catch (error) {
+    console.error('❌ Fehler bei der Prüfung des Links:', error.message);
+    res.status(500).json({ message: 'Interner Serverfehler' });
   }
 });
 
