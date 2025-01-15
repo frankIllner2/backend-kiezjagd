@@ -17,7 +17,6 @@ router.post('/create-checkout-session', async (req, res) => {
     return res.status(400).json({ message: '⚠️ E-Mail und Spiel-ID sind erforderlich.' });
   }
 
-
   try {
     // 🆕 Spielnamen aus der Game-Datenbank abrufen
     const game = await Game.findOne({ encryptedId: gameId });
@@ -85,13 +84,17 @@ router.post('/verify-payment', async (req, res) => {
       return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich' });
     }
 
+    // ✅ gameId aus metadata extrahieren
+    const gameId = session.metadata.gameId; // Hier wird die gameId aus der Session ausgelesen
+
+
     const order = await Order.findOneAndUpdate(
       { sessionId: sessionId },
       { paymentStatus: 'paid' }
     );
  
     if (order) {
-      await sendGameLink(order.email, sessionId);
+      await sendGameLink(order.email, sessionId, gameId, '');
       res.json({ message: '✅ Spiel-Link gesendet' });
     } else {
       res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
@@ -124,7 +127,7 @@ router.get('/validate-link/:sessionId', async (req, res) => {
       return res.status(410).json({ message: '❌ Der Link ist abgelaufen.' });
     }
 
-    res.json({ message: '✅ Der Link ist gültig.', order });
+      res.json({ message: '✅ Der Link ist gültig.', gameId: order.gameId });
   } catch (error) {
     console.error('❌ Fehler bei der Prüfung des Links:', error.message);
     res.status(500).json({ message: 'Interner Serverfehler' });

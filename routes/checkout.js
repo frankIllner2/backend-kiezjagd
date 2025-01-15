@@ -25,8 +25,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-        console.log('gameID');
-        console.log(session.metadata.gameId);
+       
         try {
           const order = await Order.findOneAndUpdate(
             { sessionId: session.id }, // Suche nach der Session-ID
@@ -42,7 +41,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
           if (order) {
             console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
-            await sendGameLink(order.email, session.id, game.name);
+            await sendGameLink(order.email, session.id,session.metadata.gameId, game.name);
           } else {
             console.warn('❌ Keine Bestellung mit dieser Session-ID gefunden.');
           }
