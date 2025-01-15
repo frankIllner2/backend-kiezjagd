@@ -111,7 +111,7 @@ router.get('/validate-link/:sessionId', async (req, res) => {
 
   try {
    
-    const order = await Order.findOne({ 'cs_test_a14HSyifxrvliClyn81oRbZ8sHYnSYSfnkORvBfAsLmg5diyLkKC59TPU4' });
+    const order = await Order.findOne({ sessionId });
     console.log(order);
     
     if (!order) {
