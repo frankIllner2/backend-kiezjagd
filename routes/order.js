@@ -101,7 +101,6 @@ router.post('/verify-payment', async (req, res) => {
 });
 
 
-// ✅ Route: Spiel-Link überprüfen
 // ✅ Route: Link-Gültigkeit prüfen
 router.get('/validate-link/:gameId', async (req, res) => {
   const { gameId } = req.params;
@@ -118,6 +117,8 @@ router.get('/validate-link/:gameId', async (req, res) => {
     // Prüfung auf Ablaufdatum
     if (order.isExpired || order.endTime < now) {
       return res.status(410).json({ message: '❌ Der Link ist abgelaufen.' });
+    } else {
+      return res.json({ message: '✅ Der Link ist gültig.' });
     }
 
     res.json({ message: '✅ Der Link ist gültig.', order });

@@ -70,7 +70,7 @@ router.get('/random', async (req, res) => {
         answer: req.body.answer || '',
         imageUrl: req.body.imageUrl || '',
       };
-      console.log('########### addQestion 2 ###########');
+      
       game.questions.push(newQuestion);
       await game.save();
   
