@@ -117,8 +117,6 @@ router.get('/validate-link/:gameId', async (req, res) => {
     // Prüfung auf Ablaufdatum
     if (order.isExpired || order.endTime < now) {
       return res.status(410).json({ message: '❌ Der Link ist abgelaufen.' });
-    } else {
-      return res.json({ message: '✅ Der Link ist gültig.' });
     }
 
     res.json({ message: '✅ Der Link ist gültig.', order });
