@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendGameLink(email, sessionId, gameId, gameName) {
-  const link = `${process.env.FRONTEND_URL}/game/${sessionId}/gameId`;
+  const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
