@@ -106,10 +106,12 @@ router.post('/verify-payment', async (req, res) => {
 // ✅ Route: Link-Gültigkeit prüfen
 router.get('/validate-link/:sessionId', async (req, res) => {
   const { sessionId } = req.body;
+ 
+  await checkParams('order.js', 'Session', sessionId, 'test', 'order');
 
   try {
    
-    const order = await Order.findOne({ sessionId: sessionId });
+    const order = await Order.findOne({ 'cs_test_a14HSyifxrvliClyn81oRbZ8sHYnSYSfnkORvBfAsLmg5diyLkKC59TPU4' });
     console.log(order);
     
     if (!order) {
