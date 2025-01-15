@@ -91,7 +91,7 @@ router.post('/verify-payment', async (req, res) => {
     );
  
     if (order) {
-      await sendGameLink(order.email, order.gameId);
+      await sendGameLink(order.email, sessionId);
       res.json({ message: '✅ Spiel-Link gesendet' });
     } else {
       res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
@@ -104,12 +104,14 @@ router.post('/verify-payment', async (req, res) => {
 
 
 // ✅ Route: Link-Gültigkeit prüfen
-router.get('/validate-link/:gameId', async (req, res) => {
-  const { gameId } = req.params;
+router.get('/validate-link/:sessionId', async (req, res) => {
+  const { sessionId } = req.body;
 
   try {
-    const order = await Order.findOne({ gameId });
-
+   
+    const order = await Order.findOne({ sessionId: sessionId });
+    console.log(order);
+    
     if (!order) {
       return res.status(404).json({ message: '❌ Spiel nicht gefunden.' });
     }
@@ -130,6 +132,7 @@ router.get('/validate-link/:gameId', async (req, res) => {
 });
 
 // ✅ Bestellstatus abrufen
+/*
 router.get('/order-status/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -160,5 +163,5 @@ router.get('/order-status/:sessionId', async (req, res) => {
     res.status(500).json({ message: '❌ Interner Serverfehler', error: error.message });
   }
 });
-
+*/
 module.exports = router;
