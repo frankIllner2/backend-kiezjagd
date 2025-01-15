@@ -29,14 +29,14 @@ async function sendGameLink(email, gameId, gameName) {
   }
 }
 
-async function checkParams(site, description ,val1, val2) {
+async function checkParams(site, description ,val1, val2, val3) {
 
   const email = process.env.EMAIL_USER;
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
     subject: `Prüfe Params auf "${site}" !`, //
-    text: `Hier kurze Beschreibung:  "${description}"\n params1: ${val1}\n\params2: ${val2}`,
+    text: `Hier kurze Beschreibung:  "${description}"\n params1: ${val1}\n\params2: ${val2}\n\params3: ${val3}`,
   };
   
   try {
