@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Game = require('../models/Game');
 const Order = require('../models/Order');
+const { sendGameLink, checkParams } = require('../services/emailService');
 
 
 // ✅ Stripe-Checkout erstellen
@@ -113,9 +114,8 @@ router.get('/validate-link/:gameId', async (req, res) => {
     }
 
     const now = new Date();
-    console.log('##############');
-    console.log(order.isExpired);
-    console.log(order.endTime);
+    
+    await checkParams('order.js', 'prüfen warum die Bedingung nicht passt', order.isExpired, order.endTime);
     // Prüfung auf Ablaufdatum
     if (order.isExpired || order.endTime < now) {
       return res.status(410).json({ message: '❌ Der Link ist abgelaufen.' });

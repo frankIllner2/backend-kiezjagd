@@ -29,4 +29,22 @@ async function sendGameLink(email, gameId, gameName) {
   }
 }
 
-module.exports = { sendGameLink };
+async function checkParams(site, description ,val1, val2) {
+
+  const email = process.env.EMAIL_USER;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Prüfe Params auf "${site}" !`, //
+    text: `Hier kurze Beschreibung:  "${description}"\n params1: ${val1}\n\params2: ${val2}`,
+  };
+  
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ E-Mail erfolgreich gesendet:', info.response);
+  } catch (error) {
+    console.error('❌ Fehler beim Senden der E-Mail:', error.message);
+  }
+}
+
+module.exports = { sendGameLink, checkParams };
