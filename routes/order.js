@@ -105,15 +105,13 @@ router.post('/verify-payment', async (req, res) => {
 
 // ✅ Route: Link-Gültigkeit prüfen
 router.get('/validate-link/:sessionId', async (req, res) => {
-  const { sessionId } = req.body;
+  const { sessionId } = req.params;
  
-  await checkParams('order.js', 'Session', sessionId, 'test', 'order');
-
   try {
    
     const order = await Order.findOne({ sessionId });
     console.log(order);
-    
+    await checkParams('order.js', 'Session', sessionId, 'test', 'order');
     if (!order) {
       return res.status(404).json({ message: '❌ Spiel nicht gefunden.' });
     }
