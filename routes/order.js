@@ -25,9 +25,9 @@ router.post('/create-checkout-session', async (req, res) => {
     }
     console.log( game.name);
 
-    // ✅ Endzeit für den Link berechnen (5 Minuten für Testzwecke)
+    // Endzeit für den Link berechnen (72 Stunden ab jetzt)
     const now = new Date();
-    const endTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 Minuten ab jetzt
+    const endTime = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 Stunden ab jetzt
     
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
