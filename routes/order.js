@@ -131,37 +131,15 @@ router.get('/validate-link/:sessionId', async (req, res) => {
   }
 });
 
-// ✅ Bestellstatus abrufen
-/*
-router.get('/order-status/:sessionId', async (req, res) => {
+// API: Bestellungen abrufen
+router.get("/orders", async (req, res) => {
   try {
-    const { sessionId } = req.params;
-
-    if (!sessionId) {
-      return res.status(400).json({ message: '⚠️ Session-ID ist erforderlich.' });
-    }
-
-    const order = await Order.findOne({ sessionId });
-
-    if (!order) {
-      return res.status(404).json({ message: '❌ Bestellung nicht gefunden.' });
-    }
-
-    const gameLink = `${process.env.FRONTEND_URL}/game/${order.gameId}?email=${encodeURIComponent(order.email)}`;
-
-    res.json({
-      order: {
-        gameId: order.gameId,
-        email: order.email,
-        timestamp: order.createdAt,
-        gameName: order.gameName || 'Unbekanntes Spiel',
-      },
-      gameLink,
-    });
+    const orders = await Order.find().sort({ createdTime: -1 });
+    res.status(200).json(orders);
   } catch (error) {
-    console.error('❌ Fehler beim Abrufen des Bestellstatus:', error.message);
-    res.status(500).json({ message: '❌ Interner Serverfehler', error: error.message });
+    res.status(500).json({ error: "Fehler beim Abrufen der Bestellungen." });
   }
 });
-*/
+
+
 module.exports = router;
