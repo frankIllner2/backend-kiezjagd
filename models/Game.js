@@ -6,13 +6,20 @@ const QuestionSchema = new mongoose.Schema({
   type: { type: String, enum: ['text', 'multiple'], default: 'text' }, // Frage-Typ: Text oder Mehrfachauswahl
   options: [
     {
-      text: { type: String }, // Antworttext 
-      correct: { type: Boolean, default: false } // Ist die Antwort korrekt?
-    }
+      type: {
+        type: String,
+        enum: ['text', 'image'], // Erlaube sowohl Text- als auch Bildoptionen
+        default: 'text', // Standardwert ist Text
+      },
+      text: { type: String }, // Antworttext (nur für Textoptionen)
+      imageUrl: { type: String }, // Bild-URL (nur für Bildoptionen)
+      correct: { type: Boolean, default: false }, // Ist die Antwort korrekt?
+    },
   ], // Optionen für Mehrfachauswahl
   answer: { type: String }, // Richtige Antwort für Freitext
-  imageUrl: { type: String }, // URL des hochgeladenen Bildes
+  imageUrl: { type: String }, // URL des hochgeladenen Bildes für die Frage selbst
 });
+
 
 const GameSchema = new mongoose.Schema({
   city: { type: String, required: true },
