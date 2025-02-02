@@ -6,48 +6,60 @@ const Result = require('../models/Result');
 const crypto = require('crypto');
 
 
-// Route: Alle Spiele abrufen
-router.get('/', async (req, res) => {
-  try {
-    const games = await Game.find();
-    res.json(games);
-  } catch (err) {
-    console.error('Fehler beim Abrufen der Spiele:', err);
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ✅ Zwei zufällige Spiele abrufen
-router.get('/random', async (req, res) => {
-
-  try {
-    
-    const randomGames = await Game.aggregate([{ $sample: { size: 3 } }]);
-
-    if (!randomGames || randomGames.length === 0) {
-      return res.status(404).json({ message: 'Keine zufälligen Spiele gefunden' });
-    }
-
-    res.json(randomGames.map(game => game.encryptedId));
-  } catch (error) {
-    console.error('❌ Fehler beim Abrufen zufälliger Spiele:', error);
-    res.status(500).json({ message: 'Interner Serverfehler', error: error.message });
-  }
-});
-
-  // Fragen für ein bestimmtes Spiel abrufen
-  router.get('/:encryptedId/questions', async (req, res) => {
+  // Route: Alle Spiele abrufen
+  router.get("/", async (req, res) => {
     try {
-      const game = await Game.findOne({ encryptedId: req.params.encryptedId });
-      if (!game) {
-        return res.status(404).json({ message: 'Spiel nicht gefunden' });
-      }
-      res.json(game.questions || []);
+      const isAdmin = req.query.admin === "true"; // 🛑 Prüfen, ob Admin-Abfrage
+      console.log(isAdmin);
+      const query = isAdmin ? {} : { isDisabled: { $ne: true } }; // Admin sieht alles
+
+      const games = await Game.find(query);
+      res.json(games);
     } catch (err) {
-      console.error('Fehler beim Abrufen der Fragen:', err);
+      console.error("Fehler beim Abrufen der Spiele:", err);
       res.status(500).json({ message: err.message });
     }
   });
+
+
+  // ✅ Zwei zufällige Spiele abrufen
+  router.get('/random', async (req, res) => {
+
+    try {
+      
+      const randomGames = await Game.aggregate([{ $sample: { size: 3 } }]);
+
+      if (!randomGames || randomGames.length === 0) {
+        return res.status(404).json({ message: 'Keine zufälligen Spiele gefunden' });
+      }
+
+      res.json(randomGames.map(game => game.encryptedId));
+    } catch (error) {
+      console.error('❌ Fehler beim Abrufen zufälliger Spiele:', error);
+      res.status(500).json({ message: 'Interner Serverfehler', error: error.message });
+    }
+  });
+
+  router.get('/:encryptedId', async (req, res) => {
+    try {
+      const isAdmin = req.query.admin === "true"; // Admin-Check durch Query-Parameter
+      const game = await Game.findOne({ encryptedId: req.params.encryptedId });
+
+      if (!game) {
+        return res.status(404).json({ message: 'Spiel nicht gefunden' });
+      }
+
+      if (game.isDisabled && !isAdmin) {
+        return res.status(403).json({ message: 'Dieses Spiel ist deaktiviert.' });
+      }
+
+      res.json(game);
+    } catch (err) {
+      console.error('Fehler beim Abrufen des Spiels:', err);
+      res.status(500).json({ message: 'Interner Serverfehler' });
+    }
+  });
+
 
   // Frage hinzufügen
   router.post('/:encryptedId/questions', async (req, res) => {
@@ -138,6 +150,9 @@ router.get('/:encryptedId', async (req, res) => {
     const game = await Game.findOne({ encryptedId: req.params.encryptedId });
     if (!game) {
       return res.status(404).json({ message: 'Spiel nicht gefunden - /:encryptedId' });
+    }
+    if (game.isDisabled) {
+      return res.status(403).json({ message: 'Dieses Spiel ist deaktiviert.' });
     }
     res.json(game);
   } catch (err) {
