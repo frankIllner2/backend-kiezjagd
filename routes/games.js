@@ -203,22 +203,6 @@ const crypto = require('crypto');
     }
   });
   
-// Route: Spiel anhand der verschlüsselten ID abrufen
-router.get('/:encryptedId', async (req, res) => {
-  try {
-    const game = await Game.findOne({ encryptedId: req.params.encryptedId });
-    if (!game) {
-      return res.status(404).json({ message: 'Spiel nicht gefunden - /:encryptedId' });
-    }
-    if (game.isDisabled) {
-      return res.status(403).json({ message: 'Dieses Spiel ist deaktiviert.' });
-    }
-    res.json(game);
-  } catch (err) {
-    console.error('Fehler beim Abrufen des Spiels:', err);
-    res.status(500).json({ message: 'Interner Serverfehler' });
-  }
-});
 
 // Aktualisieren einer Frage innerhalb eines Spiels über encryptedId
 router.put('/games/encrypted/:encryptedId/questions/:questionId', async (req, res) => {
