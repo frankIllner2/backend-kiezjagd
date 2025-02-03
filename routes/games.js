@@ -82,6 +82,14 @@ const crypto = require('crypto');
         answer: req.body.answer || '',
         imageUrl: req.body.imageUrl || '',
       };
+
+    // 🆕 Falls "anweisung", müssen GPS-Koordinaten vorhanden sein
+    if (req.body.type === 'anweisung') {
+      if (!req.body.coordinates || !req.body.coordinates.lat || !req.body.coordinates.lon) {
+        return res.status(400).json({ message: '⚠️ GPS-Koordinaten erforderlich!' });
+      }
+      newQuestion.coordinates = req.body.coordinates;
+    }
       
       game.questions.push(newQuestion);
       await game.save();
@@ -93,6 +101,56 @@ const crypto = require('crypto');
       res.status(500).json({ message: error.message });
     }
   });
+  // API für Standortüberprüfung
+  router.post("/:encryptedId/verify-location", async (req, res) => {
+    try {
+      const { questionId, userCoordinates } = req.body;
+  
+      if (!questionId || !userCoordinates || !userCoordinates.lat || !userCoordinates.lon) {
+        return res.status(400).json({ error: "Ungültige Eingabe!" });
+      }
+  
+      const game = await Game.findOne({ encryptedId: req.params.encryptedId });
+      if (!game) {
+        return res.status(404).json({ error: "Spiel nicht gefunden" });
+      }
+  
+      const question = game.questions.id(questionId);
+      if (!question || question.type !== "anweisung") {
+        return res.status(404).json({ error: "Frage nicht gefunden oder falscher Typ." });
+      }
+  
+      const distance = getDistanceFromLatLonInMeters(
+        userCoordinates.lat, userCoordinates.lon,
+        question.coordinates.lat, question.coordinates.lon
+      );
+  
+      if (distance <= 30) {
+        res.json({ success: true, message: "Standort korrekt!" });
+      } else {
+        res.json({ success: false, message: "Zu weit entfernt!" });
+      }
+    } catch (error) {
+      console.error("❌ Fehler bei der Standortprüfung:", error);
+      res.status(500).json({ error: "Fehler beim Prüfen der Position." });
+    }
+  });
+  
+  // Distanzberechnung mit Haversine-Formel
+  function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
 
   router.put('/:encryptedId/questions/:questionId', async (req, res) => {
     try {
@@ -112,6 +170,7 @@ const crypto = require('crypto');
       question.options = req.body.options || question.options;
       question.type = req.body.type || question.type;
       question.imageUrl = req.body.imageUrl || question.imageUrl;
+      question.coordinates = req.body.coordinates || question.coordinates;
   
       await game.save();
       res.status(200).json(question);

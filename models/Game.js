@@ -3,12 +3,12 @@ const crypto = require('crypto');
 
 const QuestionSchema = new mongoose.Schema({
   question: { type: String, required: true }, // Die eigentliche Frage
-  type: { type: String, enum: ['text', 'multiple'], default: 'text' }, // Frage-Typ: Text oder Mehrfachauswahl
+  type: { type: String, enum: ['text', 'multiple', 'anweisung'], default: 'text' }, // Frage-Typ: Text oder Mehrfachauswahl oder Anweisung
   options: [
     {
       type: {
         type: String,
-        enum: ['text', 'image'], // Erlaube sowohl Text- als auch Bildoptionen
+        enum: ['text', 'image', 'anweisung'], // Erlaube sowohl Text- als auch Bildoptionen
         default: 'text', // Standardwert ist Text
       },
       text: { type: String }, // Antworttext (nur für Textoptionen)
@@ -18,6 +18,10 @@ const QuestionSchema = new mongoose.Schema({
   ], // Optionen für Mehrfachauswahl
   answer: { type: String }, // Richtige Antwort für Freitext
   imageUrl: { type: String }, // URL des hochgeladenen Bildes für die Frage selbst
+  coordinates: {
+    lat: { type: Number, required: function () { return this.type === 'anweisung'; } }, // GPS-Daten erforderlich, falls "anweisung"
+    lon: { type: Number, required: function () { return this.type === 'anweisung'; } },
+  },
 });
 
 
