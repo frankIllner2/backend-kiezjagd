@@ -8,6 +8,7 @@ const crypto = require('crypto');
 
   // Route: Alle Spiele abrufen
   router.get("/", async (req, res) => {
+    console.log('alle Spiele');
     try {
       const isAdmin = req.query.admin === "true"; // 🛑 Prüfen, ob Admin-Abfrage
       console.log(isAdmin);
@@ -24,10 +25,10 @@ const crypto = require('crypto');
 
   // ✅ Zwei zufällige Spiele abrufen
   router.get('/random', async (req, res) => {
-
+    
     try {
       
-      const randomGames = await Game.aggregate([{ $sample: { size: 3 } }]);
+      const randomGames = await Game.find({}, { encryptedId: 1, _id: 0 });
 
       if (!randomGames || randomGames.length === 0) {
         return res.status(404).json({ message: 'Keine zufälligen Spiele gefunden' });
@@ -244,6 +245,7 @@ router.put('/games/encrypted/:encryptedId/questions/:questionId', async (req, re
 
 // Route: Neues Spiel erstellen
 router.post('/', async (req, res) => {
+  console.log('neues Spiel');
   try {
     // Generiere eine verschlüsselte ID
     const encryptedId = crypto.randomBytes(16).toString('hex');

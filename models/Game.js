@@ -24,15 +24,20 @@ const QuestionSchema = new mongoose.Schema({
   },
 });
 
-
 const GameSchema = new mongoose.Schema({
   city: { type: String, required: true },
   name: { type: String, required: true },
   ageGroup: { type: String, required: true },
   encryptedId: { type: String, required: true, unique: true },
   description: { type: String, required: true },
-  questions: [QuestionSchema],
+  emaildescription: { type: String, required: true },
   isDisabled: { type: Boolean, default: false },
+  gameImage: { type: String, required: true }, 
+  playtime: { type: String, required: true },
+  startloction: { type: String, required: true },
+  endloction: { type: String, required: true },
+  price: { type: String, required: true },
+  questions: [QuestionSchema],
 });
 
 // Pre-save Hook für die verschlüsselte ID
