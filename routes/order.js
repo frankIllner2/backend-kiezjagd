@@ -4,7 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Game = require('../models/Game');
 const Order = require('../models/Order');
 const { sendGameLink } = require('../services/emailService');
-const { checkParams } = require('../services/emailService');
+
 
 
 // ✅ Stripe-Checkout erstellen
