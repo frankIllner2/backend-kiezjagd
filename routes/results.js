@@ -5,9 +5,9 @@ const Result = require('../models/Result');
 // POST: Speichert das Spielergebnis
 router.post('/', async (req, res) => {
   try {
-    const { gameId, teamName, email, startTime, endTime, duration } = req.body;
+    const { gameId, teamName, email, startTime, endTime, duration, stars, gameType } = req.body;
 
-    if (!gameId || !teamName || !email || !startTime || !endTime || !duration) {
+    if (!gameId || !teamName || !email || !startTime || !endTime || !duration || !stars || !gameType) {
       return res.status(400).json({ message: 'Alle Felder sind erforderlich.' });
     }
 
@@ -18,6 +18,8 @@ router.post('/', async (req, res) => {
       startTime,
       endTime,
       duration,
+      gameType,
+      stars
     });
     console.log(result);
     const savedResult = await result.save();

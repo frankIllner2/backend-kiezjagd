@@ -33,7 +33,7 @@ const GameSchema = new mongoose.Schema({
   emaildescription: { type: String, required: true },
   isDisabled: { type: Boolean, default: false },
   gameImage: { type: String, required: true }, 
-  playtime: { type: String, required: true },
+  playtime: { type: String, required: false },
   startloction: { type: String, required: true },
   endloction: { type: String, required: true },
   price: { type: String, required: true },

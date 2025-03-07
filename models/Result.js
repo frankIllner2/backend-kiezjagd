@@ -6,7 +6,9 @@ const resultSchema = new mongoose.Schema({
   email: { type: String, required: true }, // Mail
   startTime: { type: Date, default: Date.now }, // Zeitstempel
   endTime: { type: Date, default: Date.now }, // Zeitstempel
-  duration: { type: String, required: true }, 
+  duration: { type: String, required: false },
+  stars: { type: String, required: false },
+  gameType: {type: String, required: true}
 });
 
 // Verhindere, dass das Modell mehrfach kompiliert wird
