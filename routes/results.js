@@ -7,7 +7,7 @@ router.post('/', async (req, res) => {
   try {
     const { gameId, teamName, email, startTime, endTime, duration, stars, gameType } = req.body;
 
-    if (!gameId || !teamName || !email || !startTime || !endTime || !duration || !stars || !gameType) {
+    if (!gameId || !teamName || !email || !startTime || !endTime || !duration || !gameType) {
       return res.status(400).json({ message: 'Alle Felder sind erforderlich.' });
     }
 
