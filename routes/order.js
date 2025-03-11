@@ -23,11 +23,16 @@ router.post('/create-checkout-session', async (req, res) => {
     if (!game) {
       return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
     }
-    console.log( game.name);
+    console.log( game);
 
     // Endzeit für den Link berechnen (72 Stunden ab jetzt)
     const now = new Date();
     const endTime = new Date(now.getTime() + 72 * 60 * 60 * 1000); // 72 Stunden ab jetzt
+    const price = parseFloat(game.price.replace(/[^\d,.]/g, '').replace(',', '.'));
+    if (isNaN(price)) {
+      console.error('❌ Preis konnte nicht verarbeitet werden:', game.price);
+      return res.status(400).json({ error: '❌ Preis ist ungültig.' });
+    }
     
     // ✅ Bestellung vormerken (MongoDB)
     const order = new Order({
@@ -51,7 +56,7 @@ router.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'eur',
             product_data: { name: game.name },
-            unit_amount: 500,
+            unit_amount: Math.round(price * 100),
           },
           quantity: 1,
         },
