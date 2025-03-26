@@ -15,6 +15,7 @@ const gameRoutes = require('./routes/games');
 const resultRoutes = require('./routes/results');
 const teamRoutes = require('./routes/teams');
 const uploadRoutes = require('./routes/upload');
+const newsletter = require('./routes/newsletter');
 
 // ✅ CronJobs aktivieren
 require('./cronJobs');
@@ -82,6 +83,7 @@ app.use('/api/games', gameRoutes);     // Spiele
 app.use('/api/results', resultRoutes); // Spielergebnisse
 app.use('/api/teams', teamRoutes);     // Teams
 app.use('/api', uploadRoutes);         // Datei-Uploads
+app.use('/api/newsletter', newsletter); // Newsletter
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen
 app.use((req, res) => {
