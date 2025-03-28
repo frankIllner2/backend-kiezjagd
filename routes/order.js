@@ -39,6 +39,7 @@ router.post('/create-checkout-session', async (req, res) => {
       gameId,
       email,
       gameName: game.name,
+      price: price,
       paymentStatus: 'pending',
       sessionId: null,
       endTime
@@ -99,7 +100,7 @@ router.post('/verify-payment', async (req, res) => {
     );
  
     if (order) {
-      await sendGameLink(order.email, sessionId, gameId, '');
+      await sendGameLink(order.email, sessionId, gameId, '', order.price);
       res.json({ message: '✅ Spiel-Link gesendet' });
     } else {
       res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
