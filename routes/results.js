@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
       gameType,
       stars
     });
-    console.log(result);
+ 
     const savedResult = await result.save();
     console.log('✅ Ergebnis erfolgreich gespeichert:', savedResult);
     res.status(201).json({

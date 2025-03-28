@@ -1,4 +1,7 @@
 const nodemailer = require('nodemailer');
+const { generateInvoiceBuffer } = require('./generateInvoice');
+const { v4: uuidv4 } = require('uuid'); // für Rechnungsnummer z. B.
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -12,9 +15,21 @@ const transporter = nodemailer.createTransport({
   logger: true, // Protokolliert SMTP-Kommunikation
 });
 
-async function sendGameLink(email, sessionId, gameId, gameName) {
+async function sendGameLink(email, sessionId, gameId, gameName, price = '') {
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-email.png`;
+
+  const invoiceNumber = 'R-' + uuidv4().split('-')[0].toUpperCase();
+  const date = new Date().toLocaleDateString('de-DE');
+
+  const invoiceBuffer = await generateInvoiceBuffer({
+    invoiceNumber,
+    gameName,
+    price,
+    email,
+    date,
+  });
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -135,6 +150,13 @@ async function sendGameLink(email, sessionId, gameId, gameName) {
 </div>
 
   `,
+  attachments: [
+    {
+      filename: `Rechnung-${invoiceNumber}.pdf`,
+      content: invoiceBuffer,
+    },
+  ],
+
   };
   
   try {
