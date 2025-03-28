@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   logger: true, // Protokolliert SMTP-Kommunikation
 });
 
-async function sendGameLink(email, sessionId, gameId, gameName, price = '') {
+async function sendGameLink(email, sessionId, gameId, gameName, price) {
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-email.png`;
 
