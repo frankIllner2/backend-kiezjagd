@@ -5,13 +5,16 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
     try {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
       const buffers = [];
+      const path = require('path');
+      const logoPath = path.join(__dirname, '../public/logo.png');
+    
 
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
       // Header
       doc
-        .image('public/logo.png', 50, 45, { width: 100 })
+        .image(logoPath, 50, 45, { width: 100 })
         .fontSize(20)
         .text('Kiezjagd', 160, 50)
         .fontSize(10)
