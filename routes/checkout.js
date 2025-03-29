@@ -41,7 +41,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
           if (order) {
             console.log('✅ Bestellung aktualisiert, E-Mail wird gesendet.');
-            await sendGameLink(order.email, session.id,session.metadata.gameId, game.name);
+            await sendGameLink(order.email, session.id,session.metadata.gameId, game.name, order.price);
           } else {
             console.warn('❌ Keine Bestellung mit dieser Session-ID gefunden.');
           }
