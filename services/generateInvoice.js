@@ -14,20 +14,21 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-      // Logo & Absender
+      // Logo
       const logoPath = path.join(__dirname, '../public/logo.png');
       doc.image(logoPath, 50, 45, { width: 80 });
 
+      // Absenderadresse unter dem Logo
       doc
         .fillColor(primaryColor)
         .fontSize(16)
-        .text('Kiezjagd', 140, 50)
+        .text('Kiezjagd', 50, 140)
         .fontSize(10)
-        .text('Pasteurstraße 4', 140, 70)
-        .text('10407 Berlin', 140, 85)
-        .text('info@kiezjagd.de', 140, 100);
+        .text('Pasteurstraße 4', 50, 160)
+        .text('10407 Berlin', 50, 175)
+        .text('info@kiezjagd.de', 50, 190);
 
-      // Rechnungsnummer + Datum oben rechts
+      // Rechnungstitel & Infos oben rechts
       doc
         .fontSize(12)
         .fillColor(primaryColor)
@@ -35,10 +36,10 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .text(`Rechnungs-Nr: ${invoiceNumber}`, { align: 'right' })
         .text(`Datum: ${date}`, { align: 'right' });
 
-      // Linie unter Kopfbereich
+      // Trennlinie
       doc
-        .moveTo(50, 130)
-        .lineTo(550, 130)
+        .moveTo(50, 210)
+        .lineTo(550, 210)
         .lineWidth(1)
         .strokeColor(lightGray)
         .stroke();
@@ -54,7 +55,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .fillColor('black')
         .text(email);
 
-      // Spiel- & Preisangaben
+      // Spielinfo
       doc
         .moveDown(2)
         .fontSize(12)
@@ -65,6 +66,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .fillColor('black')
         .text(gameName);
 
+      // Preis
       doc
         .moveDown(1.5)
         .fontSize(12)
