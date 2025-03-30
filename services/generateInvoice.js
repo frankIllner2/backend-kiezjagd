@@ -9,7 +9,6 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
 
       // Farben
       const primaryColor = '#355b4c';
-      const accentColor = '#FAC227';
       const lightGray = '#cccccc';
 
       doc.on('data', buffers.push.bind(buffers));
@@ -22,11 +21,11 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc
         .fillColor(primaryColor)
         .fontSize(16)
-        .text('Kiezjagd', 100, 50)
+        .text('Kiezjagd', 140, 50)
         .fontSize(10)
-        .text('Pasteurstraße 4', 100, 70)
-        .text('10407 Berlin', 100, 85)
-        .text('info@kiezjagd.de', 100, 100);
+        .text('Pasteurstraße 4', 140, 70)
+        .text('10407 Berlin', 140, 85)
+        .text('info@kiezjagd.de', 140, 100);
 
       // Rechnungsnummer + Datum oben rechts
       doc
@@ -74,7 +73,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
 
       doc
         .fontSize(14)
-        .fillColor(accentColor)
+        .fillColor(primaryColor)
         .text(`${price.toFixed(2)} EUR`, 150, doc.y - 15);
 
       // Linie vor Fußzeile
