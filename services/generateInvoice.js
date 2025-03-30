@@ -9,12 +9,12 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
 
       // Farben
       const primaryColor = '#355b4c';
-      const lightGray = '#cccccc';
+      const lightGray = '#E9E2D0';
 
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
-      // Logo
+      // Logo oben links
       const logoPath = path.join(__dirname, '../public/logo.png');
       doc.image(logoPath, 50, 45, { width: 80 });
 
@@ -28,18 +28,18 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .text('10407 Berlin', 50, 175)
         .text('info@kiezjagd.de', 50, 190);
 
-      // Rechnungstitel & Infos oben rechts
+      // Rechnungstitel & Infos – weiter unten rechts
       doc
         .fontSize(12)
         .fillColor(primaryColor)
-        .text(`Rechnung`, 400, 50, { align: 'right' })
+        .text(`Rechnung`, 400, 230, { align: 'right' })
         .text(`Rechnungs-Nr: ${invoiceNumber}`, { align: 'right' })
         .text(`Datum: ${date}`, { align: 'right' });
 
-      // Trennlinie
+      // Trennlinie unter Header
       doc
-        .moveTo(50, 210)
-        .lineTo(550, 210)
+        .moveTo(50, 270)
+        .lineTo(550, 270)
         .lineWidth(1)
         .strokeColor(lightGray)
         .stroke();
@@ -78,7 +78,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .fillColor(primaryColor)
         .text(`${price.toFixed(2)} EUR`, 150, doc.y - 15);
 
-      // Linie vor Fußzeile
+      // Trennlinie vor Fußzeile
       doc
         .moveDown(3)
         .moveTo(50, doc.y)
