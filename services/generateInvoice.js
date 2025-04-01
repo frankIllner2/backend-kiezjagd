@@ -32,7 +32,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc
         .fontSize(12)
         .fillColor(primaryColor)
-        .text(`Rechnung`, 400, 230, { align: 'right' })
+        .text(`Rechnung`, 400, 140, { align: 'right' })
         .text(`Rechnungs-Nr: ${invoiceNumber}`, { align: 'right' })
         .text(`Datum: ${date}`, { align: 'right' });
 
@@ -41,7 +41,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .moveTo(50, 270)
         .lineTo(550, 270)
         .lineWidth(1)
-        .strokeColor(lightGray)
+        .strokeColor(primaryColor)
         .stroke();
 
       // Kunde
@@ -51,8 +51,8 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .fillColor(primaryColor)
         .text('Rechnung an:', 50)
         .moveDown(0.5)
-        .fontSize(11)
-        .fillColor('black')
+        .fontSize(12)
+        .fillColor(primaryColor)
         .text(email);
 
       // Spielinfo
@@ -62,8 +62,8 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .fillColor(primaryColor)
         .text('Gekauftes Spiel:', 50)
         .moveDown(0.5)
-        .fontSize(11)
-        .fillColor('black')
+        .fontSize(12)
+        .fillColor(primaryColor)
         .text(gameName);
 
       // Preis
@@ -74,7 +74,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .text('Gesamtpreis:', 50);
 
       doc
-        .fontSize(14)
+        .fontSize(12)
         .fillColor(primaryColor)
         .text(`${price.toFixed(2)} EUR`, 150, doc.y - 15);
 
@@ -84,7 +84,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
         .moveTo(50, doc.y)
         .lineTo(550, doc.y)
         .lineWidth(1)
-        .strokeColor(lightGray)
+        .strokeColor(primaryColor)
         .stroke();
 
       // Fußzeile
