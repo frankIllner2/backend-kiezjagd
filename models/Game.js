@@ -31,7 +31,7 @@ const GameSchema = new mongoose.Schema({
   ageGroup: { type: String, required: true },
   encryptedId: { type: String, required: true, unique: true },
   description: { type: String, required: true },
-  emaildescription: { type: String, required: true },
+  prehistory: { type: String, required: true },
   isDisabled: { type: Boolean, default: false },
   gameImage: { type: String, required: true }, 
   playtime: { type: String, required: false },
