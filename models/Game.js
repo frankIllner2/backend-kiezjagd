@@ -9,7 +9,7 @@ const QuestionSchema = new mongoose.Schema({
     {
       type: {
         type: String,
-        enum: ['text', 'image', 'anweisung'], // Erlaube sowohl Text- als auch Bildoptionen
+        enum: ['text', 'image', 'both', 'anweisung'], // Erlaube sowohl Text- als auch Bildoptionen
         default: 'text', // Standardwert ist Text
       },
       text: { type: String }, // Antworttext (nur für Textoptionen)
