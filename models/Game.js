@@ -32,6 +32,7 @@ const GameSchema = new mongoose.Schema({
   encryptedId: { type: String, required: true, unique: true },
   description: { type: String, required: true },
   prehistory: { type: String, required: true },
+  infohistory: { type: String, required: true },
   isDisabled: { type: Boolean, default: false },
   gameImage: { type: String, required: true }, 
   playtime: { type: String, required: false },
