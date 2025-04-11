@@ -18,8 +18,8 @@ const transporter = nodemailer.createTransport({
 async function sendGameLink(email, sessionId, gameId, gameName, price) {
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-mail-2.png`;
-  const fb = `${process.env.FRONTEND_URL}/fb.jpg`;
-  const instagram = `${process.env.FRONTEND_URL}/insta.jpg`;
+  const fb = `${process.env.FRONTEND_URL}/fb.png`;
+  const instagram = `${process.env.FRONTEND_URL}/insta.png`;
 
   const invoiceNumber = 'R-' + uuidv4().split('-')[0].toUpperCase();
   const date = new Date().toLocaleDateString('de-DE');
