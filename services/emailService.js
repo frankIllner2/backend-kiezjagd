@@ -45,7 +45,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
       <img src="${fb}" alt="Facebook" width="24" height="24" style="vertical-align: middle;">
     </a>
     <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
-      <img src="${insta}" alt="Instagram" width="24" height="24" style="vertical-align: middle;">
+      <img src="${instagram}" alt="Instagram" width="24" height="24" style="vertical-align: middle;">
     </a>
   </div>
 
