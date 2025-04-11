@@ -18,6 +18,8 @@ const transporter = nodemailer.createTransport({
 async function sendGameLink(email, sessionId, gameId, gameName, price) {
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-email.png`;
+  const fb = `${process.env.FRONTEND_URL}/fb.jpg`;
+  const instagram = `${process.env.FRONTEND_URL}/insta.jpg`;
 
   const invoiceNumber = 'R-' + uuidv4().split('-')[0].toUpperCase();
   const date = new Date().toLocaleDateString('de-DE');
@@ -38,6 +40,16 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
    <div style="font-family: Arial, sans-serif; text-align: left; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
   <img src="${logoUrl}" alt="Kiezjagd Logo" style="max-width: 150px; margin-bottom: 20px; display: block;">
   
+  <div style="margin-bottom: 20px;">
+    <a href="https://facebook.com" target="_blank" style="margin-right: 10px;">
+      <img src="${fb}" alt="Facebook" width="24" height="24" style="vertical-align: middle;">
+    </a>
+    <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
+      <img src="${insta}" alt="Instagram" width="24" height="24" style="vertical-align: middle;">
+    </a>
+  </div>
+
+
   <h2 style="color: #355b4c;">Willkommen zu deiner Kiezjagd!</h2>
   <p style="font-size: 16px; color: #355b4c;">Wir freuen uns, dass du dich für das Abenteuer <strong>"${gameName}"</strong> entschieden hast!</p>
   <p style="font-size: 16px; color: #355b4c;"><strong>Du kennst Kiezjagd schon?</strong></p>
