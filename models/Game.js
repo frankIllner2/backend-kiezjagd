@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 const QuestionSchema = new mongoose.Schema({
   question: { type: String, required: true }, // Die eigentliche Frage
-  answerquestion: { type: String, required: true }, // Antwort auf die Frage - individuell
+  answerquestion: { type: String, required: false }, // Antwort auf die Frage - individuell
   type: { type: String, enum: ['text', 'multiple', 'anweisung'], default: 'text' }, // Frage-Typ: Text oder Mehrfachauswahl oder Anweisung
   options: [
     {
