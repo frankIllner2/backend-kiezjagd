@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const { generateInvoiceBuffer } = require('./generateInvoice');
-const { v4: uuidv4 } = require('uuid'); // für Rechnungsnummer z. B.
+const { generateInvoiceNumber } = require('../utils/generateInvoiceNumber');
 
 
 const transporter = nodemailer.createTransport({
@@ -20,8 +20,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-mail-2.png`;
   const fb = `${process.env.FRONTEND_URL}/fb.png`;
   const instagram = `${process.env.FRONTEND_URL}/insta.png`;
-
-  const invoiceNumber = 'R-' + uuidv4().split('-')[0].toUpperCase();
+  const invoiceNumber = await generateInvoiceNumber();
   const date = new Date().toLocaleDateString('de-DE');
 
   const invoiceBuffer = await generateInvoiceBuffer({
@@ -42,10 +41,10 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   
   <div style="margin-bottom: 20px;">
     <a href="https://facebook.com" target="_blank" style="margin-right: 10px;">
-      <img src="${fb}" alt="Facebook" width="24" height="24" style="vertical-align: middle;">
+      <img src="${fb}" alt="Facebook" width="50" height="50" style="vertical-align: middle;">
     </a>
     <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
-      <img src="${instagram}" alt="Instagram" width="24" height="24" style="vertical-align: middle;">
+      <img src="${instagram}" alt="Instagram" width="50" height="50" style="vertical-align: middle;">
     </a>
   </div>
 

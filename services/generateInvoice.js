@@ -9,7 +9,6 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
 
       // Farben
       const primaryColor = '#355b4c';
-      const lightGray = '#E9E2D0';
 
       doc.on('data', buffers.push.bind(buffers));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
