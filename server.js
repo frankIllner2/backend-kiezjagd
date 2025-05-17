@@ -82,7 +82,7 @@ app.use('/api/order', orderRoutes);    // Bestellungen
 app.use('/api/games', gameRoutes);     // Spiele
 app.use('/api/results', resultRoutes); // Spielergebnisse
 app.use('/api/teams', teamRoutes);     // Teams
-app.use('/api', uploadRoutes);         // Datei-Uploads
+app.use('/api/upload', uploadRoutes);         // Datei-Uploads
 app.use('/api/newsletter', newsletter); // Newsletter
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen

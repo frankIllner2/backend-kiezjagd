@@ -21,10 +21,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ✅ Route für Bild-Upload
-router.post('/upload/image', upload.single('image'), (req, res) => {
+router.post('/image', upload.single('image'), (req, res) => {
+  console.log('hier');
   try {
+    console.log('hier');
     if (!req.file) {
-      return res.status(400).json({ message: '❌ Keine Bilddatei hochgeladen.' });
+      return res.status(400).json({ message: '❌ Keine Bilddatei hochgeladen xxx.' });
     }
 
     const host = req.headers.host.replace('localhost', req.hostname);
@@ -42,7 +44,7 @@ router.post('/upload/image', upload.single('image'), (req, res) => {
 });
 
 // ✅ Route für Audio-Upload
-router.post('/upload/audio', upload.single('audio'), (req, res) => {
+router.post('/audio', upload.single('audio'), (req, res) => {
 
   try {
     if (!req.file) {
