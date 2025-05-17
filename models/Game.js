@@ -19,6 +19,7 @@ const QuestionSchema = new mongoose.Schema({
   ], // Optionen für Mehrfachauswahl
   answer: { type: String }, // Richtige Antwort für Freitext
   imageUrl: { type: String }, // URL des hochgeladenen Bildes für die Frage selbst
+  audioUrl: { type: String }, // URL zur Audiodatei
   coordinates: {
     lat: { type: Number, required: function () { return this.type === 'anweisung'; } }, // GPS-Daten erforderlich, falls "anweisung"
     lon: { type: Number, required: function () { return this.type === 'anweisung'; } },

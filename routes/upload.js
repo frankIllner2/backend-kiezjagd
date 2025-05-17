@@ -7,40 +7,59 @@ const router = express.Router();
 // ✅ Speicherort und Dateinamen festlegen
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = process.env.NODE_ENV === 'production' 
-      ? '/var/data/images' // Produktionspfad für Render
-      : path.join(__dirname, '../uploads'); // Lokaler Pfad
+    const uploadPath = process.env.NODE_ENV === 'production'
+      ? '/var/data'  // allgemeiner Upload-Pfad in Produktion
+      : path.join(__dirname, '../uploads'); // lokal
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
   }
 });
 
 const upload = multer({ storage });
 
-// ✅ Route zum Hochladen von Bildern
-router.post('/upload', upload.single('image'), (req, res) => {
-  
+// ✅ Route für Bild-Upload
+router.post('/upload/image', upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: '❌ Keine Datei hochgeladen.' });
+      return res.status(400).json({ message: '❌ Keine Bilddatei hochgeladen.' });
     }
 
-    // Host ermitteln und Pfad setzen
     const host = req.headers.host.replace('localhost', req.hostname);
+    const fileUrl = process.env.NODE_ENV === 'production'
+      ? `https://backend-kiezjagd.onrender.com/uploads/${req.file.filename}`
+      : `${req.protocol}://${host}/uploads/${req.file.filename}`;
 
-    // Bild-URL basierend auf der Umgebung erstellen
-    const imageUrl = process.env.NODE_ENV === 'production'
-      ? `https://backend-kiezjagd.onrender.com/uploads/${req.file.filename}` // Produktions-URL
-      : `${req.protocol}://${host}/uploads/${req.file.filename}`; // Lokale URL
+    console.log('📸 Bild-URL:', fileUrl);
+    res.json({ imageUrl: fileUrl });
 
-    console.log('📸 Bild-URL:', imageUrl);
-
-    res.json({ imageUrl });
   } catch (error) {
-    console.error('❌ Fehler beim Hochladen des Bildes:', error);
+    console.error('❌ Fehler beim Bild-Upload:', error);
     res.status(500).json({ message: '❌ Fehler beim Hochladen des Bildes.', error: error.message });
+  }
+});
+
+// ✅ Route für Audio-Upload
+router.post('/upload/audio', upload.single('audio'), (req, res) => {
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: '❌ Keine Audiodatei hochgeladen.' });
+    }
+   
+    const host = req.headers.host.replace('localhost', req.hostname);
+    const fileUrl = process.env.NODE_ENV === 'production'
+      ? `https://backend-kiezjagd.onrender.com/uploads/${req.file.filename}`
+      : `${req.protocol}://${host}/uploads/${req.file.filename}`;
+
+    console.log('🔊 Audio-URL:', fileUrl);
+    res.json({ audioUrl: fileUrl });
+
+  } catch (error) {
+    console.error('❌ Fehler beim Audio-Upload:', error);
+    res.status(500).json({ message: '❌ Fehler beim Hochladen der Audiodatei.', error: error.message });
   }
 });
 

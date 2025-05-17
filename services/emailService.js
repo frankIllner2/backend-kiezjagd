@@ -37,17 +37,8 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
     subject: `Dein Spiel "${gameName}" wartet auf dich!`,
     html: `
    <div style="font-family: Arial, sans-serif; text-align: left; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-  <img src="${logoUrl}" alt="Kiezjagd Logo" style="max-width: 150px; margin-bottom: 20px; display: block;">
+  <img src="${logoUrl}" alt="Kiezjagd Logo" style="width: 300px; height:auto; margin-bottom: 20px; display: block;">
   
-  <div style="margin-bottom: 20px;">
-    <a href="https://facebook.com" target="_blank" style="margin-right: 10px;">
-      <img src="${fb}" alt="Facebook" width="50" height="50" style="vertical-align: middle;">
-    </a>
-    <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
-      <img src="${instagram}" alt="Instagram" width="50" height="50" style="vertical-align: middle;">
-    </a>
-  </div>
-
 
   <h2 style="color: #355b4c;">Willkommen zu deiner Kiezjagd!</h2>
   <p style="font-size: 16px; color: #355b4c;">Wir freuen uns, dass du dich für das Abenteuer <strong>"${gameName}"</strong> entschieden hast!</p>
@@ -94,10 +85,10 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
 
   <hr>
 
-  <h3 style="color: #355b4c;">Belohnungen & Kiezmeisterschaft</h3>
+  <h3 style="color: #355b4c;">Belohnungen & Mitgemacht</h3>
   
   <h4 style="color: #355b4c;">Mini-Kiezjagd:</h4>
-  <p style="font-size: 14px; color: #355b4c;">Nach erfolgreichem Abschluss könnt ihr euch mit eurem Spieldatum in unsere Mitmachliste eintragen.</p>
+  <p style="font-size: 14px; color: #355b4c;">Am Ende wird euer Ergebnis automatisch erfasst – ihr könnt es anschließend auf der Startseite unter <strong>Mitgemacht</strong> zusammen mit eurer gesammelten Sternenzahl einsehen.</p>
   <table role="presentation" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td style="padding: 5px;">⭐</td>
@@ -114,7 +105,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   </table>
 
   <h4 style="color: #355b4c;">Medi-Kiezjagd:</h4>
-  <p style="font-size: 14px; color: #355b4c;">Tragt euch am Ende mit der Anzahl eurer gesammelten Sterne in die Kiezmeisterschaft ein.</p>
+  <p style="font-size: 14px; color: #355b4c;">Am Ende wird euer Ergebnis automatisch erfasst – ihr könnt es anschließend auf der Startseite unter <strong>Mitgemacht</strong> zusammen mit eurer gesammelten Sternenzahl einsehen.</p>
   <table role="presentation" border="0" cellspacing="0" cellpadding="0">
     <tr>
       <td style="padding: 5px;">⭐</td>
@@ -131,31 +122,42 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   </table>
 
   <h4 style="color: #355b4c;">Maxi-Kiezjagd:</h4>
-  <p style="font-size: 14px; color: #355b4c;">Nach erfolgreichem Abschluss könnt ihr euch mit eurer Spielzeit in die Kiezmeisterschaft eintragen.</p>
+  <p style="font-size: 14px; color: #355b4c;">
+    Nach erfolgreichem Abschluss könnt ihr auf der Startseite von Kiezjagd unter <strong>Mitgemacht</strong> euer Ergebnis und eure Platzierung einsehen. 
+  </p>
+  <p style="font-size: 14px; color: #355b4c;">
+    Für richtig beantwortete Fragen erhaltet ihr zusätzlich eine Zeitgutschrift:
+  </p>
   <table role="presentation" border="0" cellspacing="0" cellpadding="0">
     <tr>
-      <td style="padding: 5px;">⭐</td>
-      <td style="padding: 5px;">5 Sterne für den ersten Versuch</td>
+      <td style="padding: 5px;">✅</td>
+      <td style="padding: 5px;">60 Sekunden Gutschrift beim ersten Versuch</td>
     </tr>
     <tr>
-      <td style="padding: 5px;">⭐</td>
-      <td style="padding: 5px;">3 Sterne beim zweiten Versuch</td>
+      <td style="padding: 5px;">✅</td>
+      <td style="padding: 5px;">30 Sekunden Gutschrift beim zweiten Versuch</td>
     </tr>
     <tr>
-      <td style="padding: 5px;">⭐</td>
-      <td style="padding: 5px;">1 Stern beim dritten Versuch</td>
+      <td style="padding: 5px;">✅</td>
+      <td style="padding: 5px;">10 Sekunden Gutschrift beim dritten Versuch</td>
     </tr>
-    <tr>
-      <td style="padding: 5px;">⏳</td>
-      <td style="padding: 5px;">Jeder Stern bringt euch 30 Sekunden nach vorn im Ranking!</td>
-    </tr>
-  </table>
+</table>
 
   <hr>
 
   <p>Du hast Ideen oder Feedback?</p>
   <p>Wir freuen uns über Anregungen! Schreib uns einfach an:</p>
   <p><a href="mailto:support@kiezjagd.de">support@kiezjagd.de</a></p>
+
+  <div style="margin-bottom: 20px;">
+  <p>Follow us:</p>
+    <a href="https://facebook.com" target="_blank" style="margin-right: 10px;">
+      <img src="${fb}" alt="Facebook" width="50" height="50" style="vertical-align: middle;">
+    </a>
+    <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
+      <img src="${instagram}" alt="Instagram" width="50" height="50" style="vertical-align: middle;">
+    </a>
+  </div>
 
   <p>Viel Spaß und eine erfolgreiche Kiezjagd! 🎯</p>
 </div>

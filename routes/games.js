@@ -83,6 +83,7 @@ const crypto = require('crypto');
         options: req.body.options || [],
         answer: req.body.answer || '',
         imageUrl: req.body.imageUrl || '',
+        audioUrl: req.body.audioUrl || '',
       };
 
     // 🆕 Falls "anweisung", müssen GPS-Koordinaten vorhanden sein
@@ -174,6 +175,7 @@ const crypto = require('crypto');
       question.type = req.body.type || question.type;
       question.imageUrl = req.body.imageUrl || question.imageUrl;
       question.coordinates = req.body.coordinates || question.coordinates;
+      question.audioUrl = req.body.audioUrl || question.audioUrl;
   
       await game.save();
       res.status(200).json(question);
