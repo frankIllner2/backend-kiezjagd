@@ -22,9 +22,9 @@ const upload = multer({ storage });
 
 // ✅ Route für Bild-Upload
 router.post('/image', upload.single('image'), (req, res) => {
-  console.log('hier');
+ 
   try {
-    console.log('hier');
+    console.log('hier:' + req.file);
     if (!req.file) {
       return res.status(400).json({ message: '❌ Keine Bilddatei hochgeladen xxx.' });
     }
