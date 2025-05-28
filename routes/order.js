@@ -4,6 +4,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Game = require('../models/Game');
 const Order = require('../models/Order');
 const { sendGameLink } = require('../services/emailService');
+const { generateInvoiceNumber } = require('../utils/generateInvoiceNumber');
 
 
 
@@ -23,7 +24,8 @@ router.post('/create-checkout-session', async (req, res) => {
     if (!game) {
       return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
     }
-    console.log( game);
+    // InvoiceNumber
+    const invoiceNumber = await generateInvoiceNumber();
 
     // Endzeit für den Link berechnen (72 Stunden ab jetzt)
     const now = new Date();
@@ -42,7 +44,8 @@ router.post('/create-checkout-session', async (req, res) => {
       price: price,
       paymentStatus: 'pending',
       sessionId: null,
-      endTime
+      endTime,
+      invoiceNumber: invoiceNumber,
     });
     await order.save();
     console.log('✅ Bestellung gespeichert:', order);

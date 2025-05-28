@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 async function sendGameLink(email, sessionId, gameId, gameName, price) {
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
   const logoUrl =  `${process.env.FRONTEND_URL}/logo-mail-2.png`;
-  const fb = `${process.env.FRONTEND_URL}/fb.png`;
+  
   const instagram = `${process.env.FRONTEND_URL}/insta.png`;
   const invoiceNumber = await generateInvoiceNumber();
   const date = new Date().toLocaleDateString('de-DE');
@@ -151,9 +151,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
 
   <div style="margin-bottom: 20px;">
   <p>Follow us:</p>
-    <a href="https://facebook.com" target="_blank" style="margin-right: 10px;">
-      <img src="${fb}" alt="Facebook" width="50" height="50" style="vertical-align: middle;">
-    </a>
+
     <a href="https://instagram.com" target="_blank" style="margin-right: 10px;">
       <img src="${instagram}" alt="Instagram" width="50" height="50" style="vertical-align: middle;">
     </a>
