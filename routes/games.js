@@ -198,7 +198,7 @@ const crypto = require('crypto');
       // Top 5 Ergebnisse abrufen
       const topResults = await Result.find({ gameId: req.params.encryptedId })
         .sort({ duration: 1 }) // Sortiere nach kürzester Spielzeit
-        .limit(5); // Beschränke auf die Top 5
+        .limit(7); // Beschränke auf die Top 5
   
       res.json({
         gameName: game.name,
