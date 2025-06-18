@@ -169,7 +169,9 @@ const crypto = require('crypto');
   
       // Aktualisiere Frage basierend auf dem Fragetyp
       question.question = req.body.question || question.question;
-      question.answerquestion = req.body.answerquestion || question.answerquestion;
+      if (req.body.hasOwnProperty("answerquestion")) {
+        question.answerquestion = req.body.answerquestion;
+      }
       question.answer = req.body.answer || question.answer;
       question.options = req.body.options || question.options;
       question.type = req.body.type || question.type;
