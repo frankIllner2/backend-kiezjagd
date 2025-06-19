@@ -9,11 +9,12 @@ const QuestionSchema = new mongoose.Schema({
     {
       type: {
         type: String,
-        enum: ['text', 'image', 'both', 'anweisung'], // Erlaube sowohl Text- als auch Bildoptionen
+        enum: ['text', 'image', 'both', 'audio', 'anweisung'], // Erlaube sowohl Text- als auch Bildoptionen
         default: 'text', // Standardwert ist Text
       },
       text: { type: String }, // Antworttext (nur für Textoptionen)
       imageUrl: { type: String }, // Bild-URL (nur für Bildoptionen)
+      audioUrl: { type: String },
       correct: { type: Boolean, default: false }, // Ist die Antwort korrekt?
     },
   ], // Optionen für Mehrfachauswahl
