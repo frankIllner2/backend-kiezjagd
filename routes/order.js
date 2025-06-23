@@ -55,7 +55,7 @@ router.post('/create-checkout-session', async (req, res) => {
 
     if (voucherCode) {
       const couponMap = {
-        'KIEZ2025': 'KIEZ2025'
+        'Kiezjagd_2025': 'vjXxiBYR'
       };
 
       const couponId = couponMap[voucherCode];
