@@ -70,7 +70,6 @@ router.post('/create-checkout-session', async (req, res) => {
 
     // ✅ Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
       customer_email: email,
       metadata: { gameId },
       line_items: [
@@ -85,6 +84,7 @@ router.post('/create-checkout-session', async (req, res) => {
       ],
       mode: 'payment',
       discounts,
+      automatic_payment_methods: { enabled: true },
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
     });
