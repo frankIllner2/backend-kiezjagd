@@ -84,7 +84,6 @@ router.post('/create-checkout-session', async (req, res) => {
       ],
       mode: 'payment',
       discounts,
-      automatic_payment_methods: { enabled: true },
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
     });
