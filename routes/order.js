@@ -11,7 +11,7 @@ const { generateInvoiceNumber } = require('../utils/generateInvoiceNumber');
 // ✅ Stripe-Checkout erstellen
 router.post('/create-checkout-session', async (req, res) => {
   
-  const { gameId, email } = req.body;
+  const { gameId, email, voucherCode } = req.body;
   console.log(gameId);
   if (!email || !gameId) {
     console.error('⚠️ Fehlende E-Mail oder Spiel-ID:', { email, gameId });
@@ -46,9 +46,27 @@ router.post('/create-checkout-session', async (req, res) => {
       sessionId: null,
       endTime,
       invoiceNumber: invoiceNumber,
+      voucherCode: voucherCode || null
     });
     await order.save();
     console.log('✅ Bestellung gespeichert:', order);
+
+    let discounts = [];
+
+    if (voucherCode) {
+      const couponMap = {
+        'KIEZ2025': 'KIEZ2025'
+      };
+
+      const couponId = couponMap[voucherCode];
+      if (couponId) {
+        discounts.push({ coupon: couponId });
+        console.log('✅ Rabatt angewendet:', voucherCode, couponId);
+      } else {
+        console.warn('⚠️ Ungültiger Gutschein:', voucherCode);
+      }
+    }
+
 
     // ✅ Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
@@ -66,6 +84,7 @@ router.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
+      discounts,
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // Keine direkte Verwendung von session.id hier!
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
     });
