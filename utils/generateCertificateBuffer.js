@@ -1,5 +1,5 @@
 const PDFDocument = require('pdfkit');
-const path = require('path');
+//const path = require('path');
 
 function generateCertificateBuffer({ team, result }) {
   return new Promise((resolve, reject) => {

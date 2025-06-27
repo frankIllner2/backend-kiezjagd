@@ -26,10 +26,10 @@ router.post('/', async (req, res) => {
  
     const savedResult = await result.save();
     console.log('✅ Ergebnis erfolgreich gespeichert:', savedResult);
-
+    console.log(savedResult._id);
     // 📨 Urkunde versenden
     try {
-    //  await sendCertificate(savedResult._id);
+      await sendCertificate(savedResult._id);
       console.log('✅ Urkunde erfolgreich versendet.');
     } catch (mailError) {
       console.error('❌ Fehler beim Versenden der Urkunde:', mailError.message);

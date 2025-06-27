@@ -102,7 +102,7 @@ router.post('/create-checkout-session', async (req, res) => {
 // ✅ Bestellung nach Zahlung prüfen
 router.post('/verify-payment', async (req, res) => {
   const { sessionId } = req.body;
-  console.log('🔍 verify-payment aufgerufen mit Session:', sessionId);
+
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
