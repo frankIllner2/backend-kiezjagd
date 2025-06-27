@@ -1,28 +1,35 @@
+// routes/teams.js
 const express = require('express');
 const router = express.Router();
-const Result = require('../models/Result');
+const Team = require('../models/Teams');
 
-router.get('/check', async (req, res) => {
-  const { teamName, gameId } = req.query;
-  console.log('checkname');
-  console.log(teamName);
-  console.log(gameId);
-  if (!teamName || !gameId) {
-    return res.status(400).json({ message: 'Teamname und Spiel-ID sind erforderlich' });
+// Neues Team speichern
+router.post('/', async (req, res) => {
+  const { name, email, players, gameId } = req.body;
+
+  if (!name || !email || !Array.isArray(players) || !gameId) {
+    return res.status(400).json({ message: 'Ungültige Teaminformationen' });
   }
 
   try {
-    // Prüfe, ob ein Team mit diesem Namen und Spiel-ID existiert
-    const existingTeam = await Result.findOne({ teamName, gameId });
-    if (existingTeam) {
-      return res.json({ exists: true });
+    const existing = await Team.findOne({ name, gameId });
+    if (existing) {
+      return res.status(409).json({ message: 'Teamname bereits vergeben' });
     }
-    res.json({ exists: false });
+
+    const newTeam = await Team.create({
+      name,
+      email,
+      players,
+      gameId,
+      startTime: new Date(),
+    });
+
+    res.status(201).json(newTeam);
   } catch (error) {
-    console.error('Fehler bei der Überprüfung des Teamnamens:', error.message);
-    res.status(500).json({ message: 'Interner Serverfehler', error: error.message });
+    console.error('❌ Fehler beim Team-Speichern:', error);
+    res.status(500).json({ message: 'Interner Fehler beim Speichern des Teams' });
   }
 });
-
 
 module.exports = router;

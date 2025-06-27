@@ -88,6 +88,8 @@ app.use('/api/teams', teamRoutes);     // Teams
 app.use('/api/upload', uploadRoutes);         // Datei-Uploads
 app.use('/api/newsletter', newsletter); // Newsletter
 app.use('/api/questions', questionRoutes); // Fragen sortieren
+app.use('/api/teams', teamRoutes); // Teams
+
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen
 app.use((req, res) => {

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Result = require('../models/Result');
+const { sendCertificate } = require('../utils/sendCertificateEmail');
+
 
 // POST: Speichert das Spielergebnis
 router.post('/', async (req, res) => {
@@ -24,8 +26,17 @@ router.post('/', async (req, res) => {
  
     const savedResult = await result.save();
     console.log('✅ Ergebnis erfolgreich gespeichert:', savedResult);
+
+    // 📨 Urkunde versenden
+    try {
+      await sendCertificate(savedResult._id);
+      console.log('✅ Urkunde erfolgreich versendet.');
+    } catch (mailError) {
+      console.error('❌ Fehler beim Versenden der Urkunde:', mailError.message);
+    }
+
     res.status(201).json({
-      message: 'Ergebnis erfolgreich gespeichert.',
+      message: 'Ergebnis gespeichert und Urkunde versendet.',
       result: savedResult,
     });
   } catch (err) {
