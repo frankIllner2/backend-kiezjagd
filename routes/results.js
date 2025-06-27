@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 
     // 📨 Urkunde versenden
     try {
-      await sendCertificate(savedResult._id);
+    //  await sendCertificate(savedResult._id);
       console.log('✅ Urkunde erfolgreich versendet.');
     } catch (mailError) {
       console.error('❌ Fehler beim Versenden der Urkunde:', mailError.message);

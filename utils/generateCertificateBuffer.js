@@ -7,7 +7,8 @@ function generateCertificateBuffer({ team, result }) {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
       const buffers = [];
 
-      const logoPath = path.join(__dirname, '../public/logo.png'); // optional: Logo einfügen
+      //const logoPath = path.join(__dirname, '../public/logo.png'); // optional: Logo einfügen
+      const logoPath = '';
       const primaryColor = '#355b4c';
 
       doc.on('data', buffers.push.bind(buffers));
