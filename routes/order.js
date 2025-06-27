@@ -67,7 +67,6 @@ router.post('/create-checkout-session', async (req, res) => {
       }
     }
 
-
     // ✅ Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
@@ -103,7 +102,7 @@ router.post('/create-checkout-session', async (req, res) => {
 // ✅ Bestellung nach Zahlung prüfen
 router.post('/verify-payment', async (req, res) => {
   const { sessionId } = req.body;
-
+  console.log('🔍 verify-payment aufgerufen mit Session:', sessionId);
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -122,6 +121,7 @@ router.post('/verify-payment', async (req, res) => {
  
     if (order) {
       await sendGameLink(order.email, sessionId, gameId, '', order.price);
+      
       res.json({ message: '✅ Spiel-Link gesendet' });
     } else {
       res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
