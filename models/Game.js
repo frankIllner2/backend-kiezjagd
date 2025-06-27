@@ -36,6 +36,7 @@ const GameSchema = new mongoose.Schema({
   prehistory: { type: String, required: false },
   infohistory: { type: String, required: false },
   isDisabled: { type: Boolean, default: false },
+  isVoucher: { type: Boolean, default: false },
   gameImage: { type: String, required: true }, 
   playtime: { type: String, required: false },
   startloction: { type: String, required: true },

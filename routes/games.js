@@ -10,7 +10,7 @@ const crypto = require('crypto');
   router.get("/", async (req, res) => {
     console.log('alle Spiele');
     try {
-      const isAdmin = req.query.admin === "true"; // 🛑 Prüfen, ob Admin-Abfrage
+      const isAdmin = req.query.admin === "true";
       console.log(isAdmin);
       const query = isAdmin ? {} : { isDisabled: { $ne: true } }; // Admin sieht alles
 
