@@ -1,5 +1,5 @@
 const PDFDocument = require('pdfkit');
-//const path = require('path');
+const path = require('path');
 
 function generateCertificateBuffer({ team, result }) {
   return new Promise((resolve, reject) => {
@@ -7,8 +7,7 @@ function generateCertificateBuffer({ team, result }) {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
       const buffers = [];
 
-      //const logoPath = path.join(__dirname, '../public/logo.png'); // optional: Logo einfügen
-      const logoPath = '';
+      const logoPath = path.join(__dirname, '../public/logo.png'); // optional: Logo einfügen
       const primaryColor = '#355b4c';
 
       doc.on('data', buffers.push.bind(buffers));
