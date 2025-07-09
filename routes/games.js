@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Game = require('../models/Game');
 const Result = require('../models/Result');
-
 const crypto = require('crypto');
+const authMiddleware = require('../middleware/auth');
 
 
   // Route: Alle Spiele abrufen
@@ -338,6 +338,34 @@ router.delete('/:encryptedId/questions/:questionId', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+router.post('/:id/copy', authMiddleware, async (req, res) => {
+  try {
+    const originalGame = await Game.findById(req.params.id).lean();
+    if (!originalGame) return res.status(404).json({ error: "Spiel nicht gefunden" });
+
+    // Entferne alte MongoDB-spezifische Felder
+    delete originalGame._id;
+    originalGame.name = `${originalGame.name}_Kopie`;
+
+    // Neue encryptedId generieren (32-stellig hex)
+    originalGame.encryptedId = crypto.randomBytes(16).toString('hex');
+
+    // Timestamps aktualisieren
+    originalGame.createdAt = new Date();
+    originalGame.updatedAt = new Date();
+
+    // Neues Spiel erzeugen
+    const newGame = new Game(originalGame);
+    await newGame.save();
+
+    res.status(201).json(newGame);
+  } catch (err) {
+    console.error("Fehler beim Kopieren:", err);
+    res.status(500).json({ error: "Fehler beim Kopieren" });
+  }
+});
+
 
 
 module.exports = router;
