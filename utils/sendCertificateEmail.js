@@ -26,14 +26,14 @@ async function sendCertificate(resultId) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: result.email,
-    subject: `🎉 Eure Urkunde für das Spiel "${result.gameType}"`,
+    subject: `Eure Urkunde für das Spiel "${result.gameType}"`,
     html: `
       <div style="font-family: Arial, sans-serif; padding: 20px;">
         <h2 style="color: #355b4c;">Herzlichen Glückwunsch, ${team.name}!</h2>
         <p>Ihr habt das Spiel <strong>${result.gameType}</strong> erfolgreich abgeschlossen.</p>
         <p>Im Anhang findet ihr eure Urkunde als PDF.</p>
         <p>Danke fürs Mitmachen & bis zur nächsten Kiezjagd!</p>
-        <p>— Euer Kiezjagd-Team</p>
+        <p>Euer Kiezjagd-Team</p>
       </div>
     `,
     attachments: [
