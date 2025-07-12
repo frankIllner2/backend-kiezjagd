@@ -61,24 +61,23 @@ doc.fontSize(14).text(`und dabei ${isMaxiGame}  3 Sterne gesammelt habt!`, { ali
         const starCount = result.stars || 0;
 
         doc.moveDown();
-        doc.fontSize(14).text(`und dabei ${starCount}  3 Sterne gesammelt habt!`, { align: 'center' });
+        doc.fontSize(14).text(`und dabei ${starCount} Sterne gesammelt habt!`, { align: 'center' });
 
         // Sterne als Bild
-        const starSize = 3;
-        const totalWidth = starCount * (starSize + 5) - 5;
+        const starSize = 30;
+        const spacing = 5;
+        const totalWidth = 3 * starSize + 2 * spacing;
         const startX = (doc.page.width - totalWidth) / 2;
         const starY = doc.y + 10;
 
-        for (let i = 0; i < starCount; i++) {
-          try {
-            doc.image(starPath, startX + i * (starSize + 5), starY, {
-              width: starSize,
-              height: starSize,
-            });
-          } catch (e) {
-            console.warn('⚠️ Fehler beim Laden von star.png:', e.message);
-          }
+        try {
+          doc.image(starPath, startX, starY, { width: starSize, height: starSize });
+          doc.image(starPath, startX + starSize + spacing, starY, { width: starSize, height: starSize });
+          doc.image(starPath, startX + 2 * (starSize + spacing), starY, { width: starSize, height: starSize });
+        } catch (e) {
+          console.warn('⚠️ Fehler beim Laden von star.png:', e.message);
         }
+
 
         doc.moveDown(5);
       }
