@@ -52,11 +52,13 @@ function generateCertificateBuffer({ team, result }) {
       // Zeit oder Sterne anzeigen
       const isMaxiGame = result.gameType?.toLowerCase().includes('maxi');
 
-doc.fontSize(14).text(`und dabei ${isMaxiGame}  3 Sterne gesammelt habt!`, { align: 'center' });
-      if (isMaxiGame && result.time) {
+      if (isMaxiGame) {
         doc.moveDown();
         doc.fontSize(14).text('und dabei eine tolle Zeit erreicht:', { align: 'center' });
-        doc.fontSize(16).text(result.time, { align: 'center' });
+        if (result.duration) {
+          doc.moveDown();
+          doc.fontSize(12).text(`Benötigte Zeit: ${result.duration}`, { align: 'center' });
+        }
       } else {
         const starCount = result.stars || 0;
 
