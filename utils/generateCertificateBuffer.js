@@ -17,22 +17,22 @@ function generateCertificateBuffer({ team, result }) {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
       // Logo oben zentriert
-      const logoWidth = 150;
+      const logoWidth = 250;
       const logoHeight = 150;
-      const logoTop = 40;
+      const logoTop = 20;
       doc.image(logoPath, doc.page.width / 2 - logoWidth / 2, logoTop, { width: logoWidth });
 
       // Nach dem Logo gezielt Platz lassen
-      doc.y = logoTop + logoHeight + 20;
+      doc.y = logoTop + logoHeight + 10;
       doc.fillColor(primaryColor);
 
       // Titel
-      doc.fontSize(28).text('URKUNDE', { align: 'center' });
+      doc.fontSize(36).text('URKUNDE', { align: 'center' });
 
       // Team
       doc.moveDown();
       doc.fontSize(18).text('Herzlichen Glückwunsch an das Team', { align: 'center' });
-      doc.fontSize(20).text(team.name, { align: 'center' });
+      doc.fontSize(24).text(team.name, { align: 'center' });
 
       // Spieler:innen
       doc.moveDown();
@@ -49,28 +49,40 @@ function generateCertificateBuffer({ team, result }) {
       doc.fontSize(16).text(`„${result.gameType || 'Kiezjagd'}“`, { align: 'center' });
       doc.fontSize(14).text(`mit Bravour ${ending}`, { align: 'center' });
 
-      doc.moveDown();
-      doc.fontSize(14).text(`und dabei ${result.stars || 0} von 3 Sternen gesammelt!`, { align: 'center' });
+      // Zeit oder Sterne anzeigen
+      const isMaxiGame = result.gameType?.toLowerCase().includes('maxi');
 
-      // Sterne als Bild
-      const starCount = result.stars || 0;
-      const starSize = 30;
-      const totalWidth = starCount * (starSize + 5) - 5;
-      const startX = (doc.page.width - totalWidth) / 2;
-      const starY = doc.y + 10;
+      if (isMaxiGame && result.time) {
+        doc.moveDown();
+        doc.fontSize(14).text('und dabei eine tolle Zeit erreicht:', { align: 'center' });
+        doc.fontSize(16).text(result.time, { align: 'center' });
+      } else {
+        const starCount = result.stars || 0;
 
-      for (let i = 0; i < starCount; i++) {
-        try {
-          doc.image(starPath, startX + i * (starSize + 5), starY, {
-            width: starSize,
-            height: starSize,
-          });
-        } catch (e) {
-          console.warn('⚠️ Fehler beim Laden von star.png:', e.message);
+        doc.moveDown();
+        doc.fontSize(14).text(`und dabei ${starCount} von 3 Sternen gesammelt!`, { align: 'center' });
+
+        // Sterne als Bild
+        const starSize = 15;
+        const totalWidth = starCount * (starSize + 5) - 5;
+        const startX = (doc.page.width - totalWidth) / 2;
+        const starY = doc.y + 10;
+
+        for (let i = 0; i < starCount; i++) {
+          try {
+            doc.image(starPath, startX + i * (starSize + 5), starY, {
+              width: starSize,
+              height: starSize,
+            });
+          } catch (e) {
+            console.warn('⚠️ Fehler beim Laden von star.png:', e.message);
+          }
         }
+
+        doc.moveDown(5);
       }
 
-      doc.moveDown(5);
+      doc.moveDown(2);
       doc.fontSize(12).text('Wir sind stolz auf euch – weiter so!', { align: 'center' });
 
       doc.moveDown(2);

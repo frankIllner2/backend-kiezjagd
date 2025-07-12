@@ -8,7 +8,7 @@ const team = {
 
 const result = {
   gameType: 'Reise zum Märchenbrunnen',
-  stars: 3
+  stars: 20
 };
 
 generateCertificateBuffer({ team, result })

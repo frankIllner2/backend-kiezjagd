@@ -1,3 +1,6 @@
 node_modules/
 .env
 uploads/
+tests/test-certificate.js
+tests/urkunde.pdf
+utils/generateCertificateBuffer.js
