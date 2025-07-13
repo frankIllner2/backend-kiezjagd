@@ -32,4 +32,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Teamnamen prüfen
+router.get('/check', async (req, res) => {
+  const { teamName, gameId } = req.query;
+
+  if (!teamName || !gameId) {
+    return res.status(400).json({ message: 'Teamname und Spiel-ID sind erforderlich.' });
+  }
+
+  try {
+    const existing = await Team.findOne({ name: teamName, gameId });
+
+    res.json({ exists: !!existing }); // Antwort: { exists: true/false }
+  } catch (error) {
+    console.error('❌ Fehler beim Prüfen des Teamnamens:', error);
+    res.status(500).json({ message: 'Fehler bei der Teamnamenprüfung' });
+  }
+});
+
+
 module.exports = router;
