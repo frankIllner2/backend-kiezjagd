@@ -120,8 +120,8 @@ router.post('/verify-payment', async (req, res) => {
     );
  
     if (order) {
-      await sendGameLink(order.email, sessionId, gameId, '', order.price);
-      
+      await sendGameLink(order.email, sessionId, gameId, order.gameName, order.price);
+      console.log('oder - link sende');
       res.json({ message: '✅ Spiel-Link gesendet' });
     } else {
       res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
