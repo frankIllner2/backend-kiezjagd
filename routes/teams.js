@@ -35,14 +35,12 @@ router.post('/', async (req, res) => {
 // Teamnamen prüfen
 router.get('/check', async (req, res) => {
   const { teamName, gameId } = req.query;
-
   if (!teamName || !gameId) {
     return res.status(400).json({ message: 'Teamname und Spiel-ID sind erforderlich.' });
   }
 
   try {
-    const existing = await Team.findOne({ name: teamName, gameId });
-
+    const existing = await Team.findOne({ name: teamName, gameId: gameId });
     res.json({ exists: !!existing }); // Antwort: { exists: true/false }
   } catch (error) {
     console.error('❌ Fehler beim Prüfen des Teamnamens:', error);

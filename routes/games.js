@@ -3,7 +3,8 @@ const router = express.Router();
 const Game = require('../models/Game');
 const Result = require('../models/Result');
 const crypto = require('crypto');
-const authMiddleware = require('../middleware/auth');
+const { verifyAdmin } = require('../middleware/auth');
+
 
 
   // Route: Alle Spiele abrufen
@@ -339,7 +340,7 @@ router.delete('/:encryptedId/questions/:questionId', async (req, res) => {
   }
 });
 
-router.post('/:id/copy', authMiddleware, async (req, res) => {
+router.post('/:id/copy', verifyAdmin, async (req, res) => {
   try {
     const originalGame = await Game.findById(req.params.id).lean();
     if (!originalGame) return res.status(404).json({ error: "Spiel nicht gefunden" });
