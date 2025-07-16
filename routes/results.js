@@ -56,6 +56,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Teamnamen prüfen
+router.get('/check', async (req, res) => {
+ 
+  const { teamName, gameId } = req.query;
+
+  if (!teamName || !gameId) {
+    return res.status(400).json({ message: 'Teamname und Spiel-ID sind erforderlich.' });
+  }
+
+  try {
+    const existing = await Result.findOne({ teamName: teamName, gameId: gameId });
+    res.json({ exists: !!existing }); // Antwort: { exists: true/false }
+  } catch (error) {
+    console.error('❌ Fehler beim Prüfen des Teamnamens:', error);
+    res.status(500).json({ message: 'Fehler bei der Teamnamenprüfung' });
+  }
+});
+/*
 // GET: Ergebnisse für ein bestimmtes Spiel abrufen
 router.get('/:gameId', async (req, res) => {
   try {
@@ -67,5 +85,6 @@ router.get('/:gameId', async (req, res) => {
     res.status(500).json({ message: 'Interner Serverfehler' });
   }
 });
+*/
 
 module.exports = router;

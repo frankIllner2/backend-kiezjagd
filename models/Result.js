@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const resultSchema = new mongoose.Schema({
   gameId: { type: String, required: true }, // Spiel-ID
-  teamName: { type: String, required: true }, // Team
+  teamName: { type: String, required: true,  unique: true }, // Team
   email: { type: String, required: true }, // Mail
   startTime: { type: Date, default: Date.now }, // Zeitstempel
   endTime: { type: Date, default: Date.now }, // Zeitstempel
