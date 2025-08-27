@@ -29,12 +29,14 @@ const QuestionSchema = new mongoose.Schema({
 
 const GameSchema = new mongoose.Schema({
   city: { type: String, required: true },
+  plz: { type: String, required: true },
   name: { type: String, required: true },
   ageGroup: { type: String, required: true },
   encryptedId: { type: String, required: true, unique: true },
   description: { type: String, required: true },
   prehistory: { type: String, required: false },
   infohistory: { type: String, required: false },
+  mailtext: { type: String, required: false },
   isDisabled: { type: Boolean, default: false },
   isVoucher: { type: Boolean, default: false },
   voucherName: { type: String, required: false },
