@@ -39,6 +39,7 @@ const GameSchema = new mongoose.Schema({
   mailtext: { type: String, required: false },
   isDisabled: { type: Boolean, default: false },
   isVoucher: { type: Boolean, default: false },
+  withCertificate: { type: Boolean, default: false },
   voucherName: { type: String, required: false },
   gameImage: { type: String, required: true }, 
   playtime: { type: String, required: false },
