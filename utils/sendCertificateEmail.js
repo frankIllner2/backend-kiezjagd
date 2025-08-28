@@ -1,8 +1,11 @@
 const nodemailer = require('nodemailer');
+const mongoose = require('mongoose'); // <—
 const { generateCertificateBuffer } = require('./generateCertificateBuffer');
 const Team = require('../models/Teams');
 const Result = require('../models/Result');
 const Game = require('../models/Game');
+
+const { ObjectId } = mongoose.Types; // <—
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -18,27 +21,44 @@ const transporter = nodemailer.createTransport({
 // sehr simples Platzhalter-Templating: {{key}}
 function renderTemplate(tpl, data) {
   const str = String(tpl ?? '');
-  // falls reiner Text ohne HTML-Tags, Zeilenumbrüche in <br> umwandeln
   const hasHtml = /<\/?[a-z][\s\S]*>/i.test(str);
   const base = hasHtml ? str : str.replace(/\n/g, '<br>');
-
   return base.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
     const v = data[key];
     return v !== undefined && v !== null ? String(v) : '';
   });
 }
 
+// Robust: Spiel anhand von ObjectId ODER String-Feld (gameId/slug) laden
+async function loadGameByResultGameId(gameId) {
+  // 1) Falls echt wie ein ObjectId aussieht, probiere findById
+  if (ObjectId.isValid(gameId) && String(new ObjectId(gameId)) === String(gameId)) {
+    const byId = await Game.findById(gameId);
+    if (byId) return byId;
+  }
+  // 2) Fallback: eigenes String-Feld – hier "gameId"
+  //    -> Falls dein Schema stattdessen "slug" o.Ä. nutzt, ändere die folgende Zeile:
+  const byString = await Game.findOne({ gameId });
+  if (byString) return byString;
+
+  // Optional weiterer Fallback (nur wenn sinnvoll):
+  // return await Game.findOne({ name: gameId });
+
+  return null;
+}
+
 async function sendCertificate(resultId) {
   const result = await Result.findById(resultId);
   if (!result) throw new Error('Ergebnis nicht gefunden');
 
+  // Parallel laden: Team + Spiel (robust)
   const [team, game] = await Promise.all([
     Team.findOne({ name: result.teamName, gameId: result.gameId }),
-    Game.findById(result.gameId),
+    Game.findOne({ encryptedId: result.gameId }),
   ]);
 
   if (!team) throw new Error('Team nicht gefunden');
-  if (!game) throw new Error('Spiel nicht gefunden');
+  if (!game) throw new Error(`Spiel nicht gefunden für gameId="${result.gameId}"`);
 
   // robust: withCertificate oder (historisch) withCerticate
   const withCertificate =
@@ -50,7 +70,7 @@ async function sendCertificate(resultId) {
   const recipient = result.email || team.email;
   if (!recipient) throw new Error('Keine Empfänger-E-Mail vorhanden');
 
-  // Mail-HTML aus DB (Schema: mailtext), Fallback auf bisherigen Standard
+  // Mail-HTML aus DB (Schema: mailtext), Fallback auf Standard
   const mailTextFromDb = game.mailtext ?? game.mailText; // beides tolerieren
   const defaultHtml = `
     <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -62,7 +82,6 @@ async function sendCertificate(resultId) {
     </div>
   `;
 
-  // Daten für Platzhalter
   const html = renderTemplate(mailTextFromDb || defaultHtml, {
     teamName: team.name,
     gameName,
@@ -70,7 +89,6 @@ async function sendCertificate(resultId) {
     stars: result.starCount ?? result.stars ?? '',
   });
 
-  // Mail-Objekt vorbereiten
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: recipient,
@@ -78,16 +96,13 @@ async function sendCertificate(resultId) {
     html,
   };
 
-  // Nur wenn erlaubt: Urkunde erzeugen und anhängen
   if (withCertificate) {
     const buffer = await generateCertificateBuffer({ team, result });
-    mailOptions.attachments = [
-      {
-        filename: `Urkunde-${team.name}.pdf`,
-        content: buffer,
-        contentType: 'application/pdf',
-      },
-    ];
+    mailOptions.attachments = [{
+      filename: `Urkunde-${team.name}.pdf`,
+      content: buffer,
+      contentType: 'application/pdf',
+    }];
   } else {
     console.log(`ℹ️ Urkundenanhang deaktiviert (withCertificate=false) für Spiel ${game.name}`);
   }
