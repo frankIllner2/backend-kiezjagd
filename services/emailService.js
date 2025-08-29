@@ -165,11 +165,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
       </div>
     `,
     attachments: [
-      {
-        filename: `Rechnung-${invoiceNumber}.pdf`,
-        content: invoiceBuffer,
-        contentType: 'application/pdf',
-      },
+  
       // Inline-Bilder per CID:
       {
         filename: 'logo.png',

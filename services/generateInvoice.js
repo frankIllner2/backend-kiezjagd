@@ -1,4 +1,4 @@
-// utils/generateInvoice.js
+// generateInvoice.js
 const PDFDocument = require('pdfkit');
 const path = require('path');
 
