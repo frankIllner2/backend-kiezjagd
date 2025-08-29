@@ -40,10 +40,10 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
     to: email,
     subject: `Dein Spiel "${gameName}" wartet auf dich!`,
     html: `
-      <div style="font-family: Arial, sans-serif; text-align: left; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+      <div style="font-family: Arial, sans-serif; text-align: left; max-width: 600px; margin: auto; padding: 20px; background-color: #e9e2d0; border: 1px solid #ddd; border-radius: 10px;">
         <img src="cid:logo-kiezjagd" alt="Kiezjagd Logo" style="width: 300px; height:auto; margin-bottom: 20px; display: block;">
 
-        <h2 style="color: #355b4c;">Willkommen zu deiner Kiezjagd!</h2>
+        <h3 style="color: #355b4c;">Willkommen zu deiner Kiezjagd!</h3>
         <p style="font-size: 16px; color: #355b4c;">Wir freuen uns, dass du dich für das Abenteuer <strong>"${gameName}"</strong> entschieden hast!</p>
         <p style="font-size: 16px; color: #355b4c;"><strong>Du kennst Kiezjagd schon?</strong></p>
         <p>Super, dann kannst du direkt loslegen!</p>
