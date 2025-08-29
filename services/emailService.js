@@ -19,9 +19,9 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   console.log('sendGameLink');
 
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
-  const logoUrl =  `${process.env.FRONTEND_URL}/logo.svg`;
+  const logoUrl =  `${process.env.FRONTEND_URL}/logo.png`;
   
-  const instagram = `${process.env.FRONTEND_URL}/insta.svg`;
+  const instagram = `${process.env.FRONTEND_URL}/insta.png`;
   const invoiceNumber = await generateInvoiceNumber();
   const date = new Date().toLocaleDateString('de-DE');
 
