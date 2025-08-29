@@ -18,6 +18,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
+      const offsetY = 60; 
       const bufs = [];
       doc.on('data', (b) => bufs.push(b));
       doc.on('end', () => resolve(Buffer.concat(bufs)));
@@ -35,19 +36,20 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc.fillColor(primary);
 
       // Absender
-      doc.fontSize(10).text('Kiezjagd – Pasteurstr. 4 · 10407 Berlin', 50, 50);
+      doc.fontSize(8).text('Kiezjagd – Pasteurstr. 4 · 10407 Berlin', 50, 50 + offsetY);
 
       // Logo
-      try { doc.image(logoPath, pageW - 160, 45, { width: 110 }); } catch {}
+      try { doc.image(logoPath, pageW - 160, 45, { width: 90 }); } catch {}
 
       // Empfänger (E-Mail)
-      let y = 95;
+      let y = 95 + offsetY;
       doc.fontSize(10).text('An:', 50, y);
-      doc.fontSize(12).text(email || '', 80, y);
+      y += 18; // etwas Abstand
+      doc.fontSize(12).text(email || '', 50, y, { align: 'left' });
 
       // Rechnungsnr. / Datum
-      const infoX = pageW - 270;
-      y = 95;
+      const infoX = pageW - 240;
+      y = 95 + offsetY;
       doc.fontSize(10).text('Rechnungsnr.', infoX, y);
       doc.fontSize(12).text(String(invoiceNumber).padStart(3, '0'), infoX + 100, y, { width: 90, align: 'right' });
       y += 18;
@@ -55,7 +57,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc.fontSize(12).text(new Intl.DateTimeFormat('de-DE').format(toDate(date)), infoX + 100, y, { width: 90, align: 'right' });
 
       // Überschrift
-      y = 185; // vorher 155 → mehr Abstand nach oben
+      y = 185 + offsetY; // vorher 155 → mehr Abstand nach oben
       doc.fontSize(18).text('Rechnung', 50, y);
 
       // Tabelle
@@ -71,7 +73,7 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       y += 10; line(y); y += 10;
 
       // Position 1
-      doc.fontSize(12);
+      doc.fontSize(10);
       doc.text('1.', colPosX, y);
       doc.text(gameName, colDescX, y, { width: colPriceX - colDescX - 20 });
       doc.text(formatEUR(price), colPriceX, y, { width: 100, align: 'right' });
@@ -83,25 +85,25 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       // Total
       doc.fontSize(12).text('Total', colDescX, y, { width: colPriceX - colDescX - 20, align: 'right' });
       doc.fontSize(12).text(formatEUR(price), colPriceX, y, { width: 100, align: 'right' });
-      y += 40;
+      y += 60;
 
       // Hinweise
       doc.fontSize(9).text(
         'Sofern nicht anders angegeben, entspricht das Leistungsdatum dem Rechnungsdatum.\n' +
         'Gemäß §19 UStG enthält der Rechnungsbetrag keine Umsatzsteuer.',
-        50, y, { width: pageW - 100, align: 'center' }
+        50, y, { width: pageW - 100, align: 'left' }
       );
-      y += 60; // mehr Abstand nach den Hinweisen
+      y += 30; // mehr Abstand nach den Hinweisen
 
       // Danke + Gruß
-      doc.fontSize(12).text(
+      doc.fontSize(9).text(
         'Vielen Dank für deinen Einkauf bei Kiezjagd!\nBei Fragen melde dich gern: info@kiezjagd.de',
-        50, y, { width: pageW - 100, align: 'center' }
+        50, y, { width: pageW - 100, align: 'left' }
       );
-      y += 50;
+      y += 80 + offsetY;
       doc.fontSize(12).text(
-        'Viele Grüße und bis bald,\n    eure Fritz und Frida von Kiezjagd',
-        50, y, { width: pageW - 100, align: 'center' }
+        'Viele Grüße und bis bald,\neure Fritz und Frida von Kiezjagd',
+        50, y, { width: pageW - 100, align: 'left' }
       );
 
       // Figuren unten
