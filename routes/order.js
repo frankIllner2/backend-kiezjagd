@@ -1,14 +1,61 @@
+// routes/order.js
 const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
+
 const Game = require('../models/Game');
 const Order = require('../models/Order');
 const { sendGameLink } = require('../services/emailService');
 const { generateInvoiceNumber } = require('../utils/generateInvoiceNumber');
+const { generateInvoiceBuffer } = require('../utils/generateInvoice');
 
 // Helper: Prüfen, ob ein Wert eine valide Mongo ObjectId ist
 const isObjectId = (v) => mongoose.Types.ObjectId.isValid(v);
+
+// E-Mail Transport (einfach; identisch zu deinem Setup; passe ggf. an)
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT || 587),
+  secure: false,
+  auth: process.env.NODE_ENV === 'production' ? {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  } : undefined,
+  debug: true,
+  logger: true,
+});
+
+// Hilfsfunktion: Rabatt-Infos aus der Session ziehen (Checkout)
+function extractDiscountInfoFromSession(session) {
+  const total = session.amount_total ?? 0; // Cent
+  const amountDiscount = session.total_details?.amount_discount ?? 0; // Cent
+
+  let label = null, code = null, percentOff = null, amountOff = null;
+
+  const d = session.discounts?.[0];
+  if (d?.coupon) {
+    label = d.coupon.name || 'Gutschein';
+    percentOff = d.coupon.percent_off ?? null;
+    amountOff = d.coupon.amount_off ?? null; // Cent
+  }
+  if (d?.promotion_code?.code) {
+    code = d.promotion_code.code;
+  }
+
+  const isFree = total === 0 || session.payment_status === 'no_payment_required';
+
+  return {
+    label,
+    code,
+    percentOff,
+    amountOff,
+    amountDiscount, // Cent
+    total,          // Cent
+    isFree,
+  };
+}
 
 /**
  * ✅ Stripe-Checkout erstellen
@@ -32,21 +79,18 @@ router.post('/create-checkout-session', async (req, res) => {
     });
   }
 
-  let order; // außen deklariert, damit im catch zugreifbar
+  let order;
 
   try {
     // Spiel laden – _id ODER encryptedId unterstützen
     let game;
     if (isObjectId(gameId)) {
       game = await Game.findById(gameId);
-      // Falls der Wert zufällig wie eine ObjectId aussieht, aber eigentlich encryptedId ist:
       if (!game) {
         game = await Game.findOne({ encryptedId: gameId });
       }
     } else {
       game = await Game.findOne({ encryptedId: gameId });
-      // Optional: Falls du zusätzlich Slugs verwendest:
-      // if (!game) game = await Game.findOne({ slug: gameId });
     }
 
     if (!game) {
@@ -55,7 +99,6 @@ router.post('/create-checkout-session', async (req, res) => {
 
     // Kanonische IDs
     const canonicalEncryptedId = game.encryptedId;
-    const canonicalMongoId = String(game._id);
 
     // Rechnungsnummer
     const invoiceNumber = await generateInvoiceNumber();
@@ -64,7 +107,7 @@ router.post('/create-checkout-session', async (req, res) => {
     const now = new Date();
     const endTime = new Date(now.getTime() + 72 * 60 * 60 * 1000);
 
-    // Preis robust parsen (Zahl oder String wie "12,90 €")
+    // Preis robust parsen
     const priceRaw = game.price;
     const price =
       typeof priceRaw === 'number'
@@ -75,7 +118,7 @@ router.post('/create-checkout-session', async (req, res) => {
       return res.status(400).json({ error: '❌ Preis ist ungültig.' });
     }
 
-    // ✅ Bestellung vormerken (encryptedId als gameId speichern – konsistent für E-Mails/Links)
+    // Bestellung vormerken
     order = new Order({
       gameId: canonicalEncryptedId,
       email,
@@ -88,26 +131,22 @@ router.post('/create-checkout-session', async (req, res) => {
       voucherCode: voucherCode || null
     });
     await order.save();
-    console.log('✅ Bestellung gespeichert:', order._id, 'für Spiel', canonicalMongoId, canonicalEncryptedId);
+    console.log('✅ Bestellung gespeichert:', order._id, 'für Spiel', canonicalEncryptedId);
 
     // 🎟️ Discounts ermitteln (Promotion Code bevorzugt)
     const discounts = [];
     if (voucherCode) {
       try {
-        // a) Klartext-Promotion-Code (z. B. "Kiezjagd_2025")
         const promo = await stripe.promotionCodes.list({
           code: voucherCode,
           active: true,
           limit: 1
         });
-
         if (promo.data.length) {
           discounts.push({ promotion_code: promo.data[0].id });
         } else if (/^promo_/.test(voucherCode)) {
-          // b) Promotion-Code-ID direkt
           discounts.push({ promotion_code: voucherCode });
         } else {
-          // c) Letzter Versuch: Coupon-ID validieren
           const c = await stripe.coupons.retrieve(voucherCode);
           if (c?.valid) {
             discounts.push({ coupon: voucherCode });
@@ -127,7 +166,7 @@ router.post('/create-checkout-session', async (req, res) => {
       }
     }
 
-    // ✅ Stripe-Session erstellen – encryptedId in metadata, damit nach Zahlung wieder auffindbar
+    // Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       metadata: { gameId: canonicalEncryptedId },
@@ -142,13 +181,13 @@ router.post('/create-checkout-session', async (req, res) => {
         }
       ],
       mode: 'payment',
-      discounts, // leeres Array ist ok
-      // allow_promotion_codes: true, // Optional: Code-Feld im Stripe Checkout anzeigen
+      discounts, // [] ist ok
+      // allow_promotion_codes: true, // optional
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`
     });
 
-    // ✅ Session-ID in der Order merken
+    // Session-ID in der Order merken
     order.sessionId = session.id;
     await order.save();
     console.log('✅ Stripe-Session erstellt:', session.id);
@@ -157,13 +196,11 @@ router.post('/create-checkout-session', async (req, res) => {
   } catch (err) {
     console.error('❌ Fehler bei Stripe-Checkout:', err?.message || err);
 
-    // Erwartbare Nutzerfehler → 400
     const isStripe4xx =
       err?.type === 'StripeInvalidRequestError' ||
       err?.message?.toLowerCase?.().includes('coupon') ||
       err?.message?.toLowerCase?.().includes('promotion');
 
-    // Pending-Order auf failed setzen (optional)
     if (order?._id && !order.sessionId) {
       try {
         await Order.updateOne({ _id: order._id }, { $set: { paymentStatus: 'failed' } });
@@ -183,18 +220,20 @@ router.post('/create-checkout-session', async (req, res) => {
 
 /**
  * ✅ Zahlung verifizieren
- * Setzt Order auf "paid" und versendet Spiel-Link.
+ * Setzt Order auf "paid", sendet Spiel-Link und Rechnung (mit Rabatt, wenn vorhanden).
  */
 router.post('/verify-payment', async (req, res) => {
   const { sessionId } = req.body;
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items', 'discounts', 'discounts.coupon', 'discounts.promotion_code']
+    });
+
     if (session.payment_status !== 'paid') {
       return res.status(400).json({ message: '❌ Zahlung nicht erfolgreich' });
     }
 
-    // EncryptedId aus Stripe-Metadaten
     const gameId = session.metadata.gameId;
 
     const order = await Order.findOneAndUpdate(
@@ -203,13 +242,55 @@ router.post('/verify-payment', async (req, res) => {
       { new: true }
     );
 
-    if (order) {
-      await sendGameLink(order.email, sessionId, gameId, order.gameName, order.price);
-      console.log('📧 Spiel-Link gesendet an', order.email, 'für', gameId);
-      return res.json({ message: '✅ Spiel-Link gesendet' });
-    } else {
+    if (!order) {
       return res.status(404).json({ message: '❌ Bestellung nicht gefunden' });
     }
+
+    // Rabatt-Infos aus Session
+    const d = extractDiscountInfoFromSession(session);
+
+    // PDF-Rechnung erzeugen
+    const pdfBuffer = await generateInvoiceBuffer({
+      invoiceNumber: order.invoiceNumber,
+      gameName: order.gameName,
+      price: order.price,                      // Originalpreis EUR
+      email: order.email,
+      date: new Date(),
+
+      // Rabatt/Total aus Stripe-Session
+      discountLabel: d.label,
+      discountCode: d.code,
+      percentOff: d.percentOff,
+      discountAmount: ((d.amountDiscount || d.amountOff || 0) / 100), // EUR
+      total: (d.total ?? Math.round(order.price * 100)) / 100,        // EUR Endsumme
+    });
+
+    // Spiel-Link senden (wie gehabt)
+    await sendGameLink(order.email, sessionId, gameId, order.gameName, order.price);
+    console.log('📧 Spiel-Link gesendet an', order.email, 'für', gameId);
+
+    // Rechnung per E-Mail versenden
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: order.email,
+      subject: `Rechnung Kiezjagd #${String(order.invoiceNumber).padStart(3, '0')}`,
+      html: `
+        <div style="font-family: Arial, sans-serif;">
+          <p>Hallo,</p>
+          <p>anbei deine Rechnung für <strong>${order.gameName}</strong>.</p>
+          <p>Viel Spaß bei der Kiezjagd!</p>
+          <p>Dein Kiezjagd-Team</p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `Rechnung-${String(order.invoiceNumber).padStart(3, '0')}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+
+    return res.json({ message: '✅ Zahlung verifiziert, Spiel-Link & Rechnung versendet' });
   } catch (error) {
     console.error('❌ Fehler bei Zahlungsprüfung:', error?.message || error);
     return res.status(500).json({ error: error.message || 'Interner Serverfehler' });
@@ -218,7 +299,6 @@ router.post('/verify-payment', async (req, res) => {
 
 /**
  * ✅ Link-Gültigkeit prüfen
- * Prüft, ob der Download-/Spiel-Link (Session) noch innerhalb der Frist ist.
  */
 router.get('/validate-link/:sessionId', async (req, res) => {
   const { sessionId } = req.params;

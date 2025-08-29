@@ -14,7 +14,20 @@ function toDate(d) {
   return isNaN(t.getTime()) ? new Date() : t;
 }
 
-function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) {
+function generateInvoiceBuffer({
+  invoiceNumber,
+  gameName,
+  price,
+  email,
+  date,
+
+  // 🔹 Neu: optionale Rabatt-Parameter (alle optional!)
+  discountLabel,     // z.B. "Gutschein"
+  discountCode,      // z.B. "ABC123"
+  discountAmount,    // EUR (positiver Betrag)
+  percentOff,        // z.B. 100
+  total,             // EUR Endsumme nach Rabatt (falls schon bekannt)
+}) {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: 'A4', margin: 50 });
@@ -38,23 +51,23 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       // Absender
       doc.fontSize(8).text('Kiezjagd – Pasteurstr. 4 · 10407 Berlin', 50, 50 + offsetY);
 
-      // Logo
+      // Logo (bleibt oben, ohne Offset)
       try { doc.image(logoPath, pageW - 160, 45, { width: 90 }); } catch {}
 
       // Empfänger (E-Mail)
       let y = 95 + offsetY;
       doc.fontSize(10).text('An:', 50, y);
       y += 18; // etwas Abstand
-      doc.fontSize(12).text(email || '', 50, y, { align: 'left' });
+      doc.fontSize(10).text(email || '', 50, y, { align: 'left' });
 
-      // Rechnungsnr. / Datum
-      const infoX = pageW - 240;
+      // Rechnungsnr. / Datum  ▶️ Spalte etwas breiter gegen Umbruch
+      const infoX = pageW - 300; // vorher pageW - 240
       y = 95 + offsetY;
       doc.fontSize(10).text('Rechnungsnr.', infoX, y);
-      doc.fontSize(12).text(String(invoiceNumber).padStart(3, '0'), infoX + 100, y, { width: 90, align: 'right' });
+      doc.fontSize(10).text(String(invoiceNumber).padStart(3, '0'), infoX + 100, y, { width: 120, align: 'right' }); // vorher width: 90
       y += 18;
       doc.fontSize(10).text('Datum', infoX, y);
-      doc.fontSize(12).text(new Intl.DateTimeFormat('de-DE').format(toDate(date)), infoX + 100, y, { width: 90, align: 'right' });
+      doc.fontSize(10).text(new Intl.DateTimeFormat('de-DE').format(toDate(date)), infoX + 100, y, { width: 120, align: 'right' });
 
       // Überschrift
       y = 185 + offsetY; // vorher 155 → mehr Abstand nach oben
@@ -79,13 +92,44 @@ function generateInvoiceBuffer({ invoiceNumber, gameName, price, email, date }) 
       doc.text(formatEUR(price), colPriceX, y, { width: 100, align: 'right' });
       y += 22;
 
+      // 🔹 NEU: Rabattzeile (nur wenn discountAmount vorhanden und > 0)
+      if (discountAmount && Number(discountAmount) > 0) {
+        line(y); y += 10;
+
+        const label = discountLabel || 'Gutschein';
+        const code = discountCode ? ` (${discountCode})` : '';
+        const perc = percentOff ? ` – ${percentOff}%` : '';
+        const title = `${label}${code}${perc}`;
+
+        // Leere Pos.-Spalte, Titel links, negativer Betrag rechts
+        doc.fontSize(10);
+        doc.text('', colPosX, y);
+        doc.text(title, colDescX, y, { width: colPriceX - colDescX - 20 });
+        doc.text('-' + formatEUR(discountAmount), colPriceX, y, { width: 100, align: 'right' });
+        y += 22;
+      }
+
+      // Abschlusslinie unter (allen) Positionen
       line(y);
       y += 32; // vorher 12 → mehr Abstand unter der Tabelle
 
-      // Total
+      // 🔹 NEU: Total dynamisch (übergeben oder gerechnet)
+      const grandTotal = (typeof total === 'number')
+        ? total
+        : Math.max(0, (Number(price) || 0) - (Number(discountAmount) || 0));
+
       doc.fontSize(12).text('Total', colDescX, y, { width: colPriceX - colDescX - 20, align: 'right' });
-      doc.fontSize(12).text(formatEUR(price), colPriceX, y, { width: 100, align: 'right' });
+      doc.fontSize(12).text(formatEUR(grandTotal), colPriceX, y, { width: 100, align: 'right' });
       y += 60;
+
+      // 🔹 NEU: Hinweis bei „0,00 €“
+      if (grandTotal === 0) {
+        doc.fontSize(9).text(
+          'Hinweis: Der Rechnungsbetrag wurde vollständig durch einen Gutschein ausgeglichen.',
+          50, y, { width: pageW - 100, align: 'left' }
+        );
+        y += 20;
+      }
 
       // Hinweise
       doc.fontSize(9).text(
