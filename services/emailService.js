@@ -19,9 +19,9 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
   console.log('sendGameLink');
 
   const link = `${process.env.FRONTEND_URL}/game/${sessionId}/${gameId}`;
-  const logoUrl =  `${process.env.FRONTEND_URL}/logo-mail-2.png`;
+  const logoUrl =  `${process.env.FRONTEND_URL}/logo.svg`;
   
-  const instagram = `${process.env.FRONTEND_URL}/insta.png`;
+  const instagram = `${process.env.FRONTEND_URL}/insta.svg`;
   const invoiceNumber = await generateInvoiceNumber();
   const date = new Date().toLocaleDateString('de-DE');
 
@@ -159,7 +159,9 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
     </a>
   </div>
 
-  <p>Viel Spaß und eine erfolgreiche Kiezjagd! 🎯</p>
+  <p>Viele Grüße und bis bald, <br > 
+    eure Fritz und Frida von Kiezjagd
+  </p>
 </div>
 
   `,
