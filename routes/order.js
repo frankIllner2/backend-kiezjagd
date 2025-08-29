@@ -9,7 +9,7 @@ const Game = require('../models/Game');
 const Order = require('../models/Order');
 const { sendGameLink } = require('../services/emailService');
 const { generateInvoiceNumber } = require('../utils/generateInvoiceNumber');
-const { generateInvoiceBuffer } = require('../utils/generateInvoice');
+const { generateInvoiceBuffer } = require('../services/generateInvoice');
 
 // Helper: Prüfen, ob ein Wert eine valide Mongo ObjectId ist
 const isObjectId = (v) => mongoose.Types.ObjectId.isValid(v);
