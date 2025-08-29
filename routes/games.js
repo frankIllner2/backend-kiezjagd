@@ -70,7 +70,7 @@ const { verifyAdmin } = require('../middleware/auth');
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
       if (!game) {
   
-        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden -3' });
       }
   
       if (!req.body.question || req.body.question.trim() === '') {
@@ -160,7 +160,7 @@ const { verifyAdmin } = require('../middleware/auth');
     try {
       const game = await Game.findOne({ encryptedId: req.params.encryptedId });
       if (!game) {
-        return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+        return res.status(404).json({ message: '❌ Spiel nicht gefunden - 2' });
       }
   
       const question = game.questions.id(req.params.questionId);

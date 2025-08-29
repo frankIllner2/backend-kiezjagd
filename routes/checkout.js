@@ -36,7 +36,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           // 🆕 Spielnamen aus der Game-Datenbank abrufen
           const game = await Game.findOne({ encryptedId: session.metadata.gameId });
           if (!game) {
-            return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
+            return res.status(404).json({ message: '❌ Spiel nicht gefunden -4' });
           }
 
           if (order) {
