@@ -278,8 +278,7 @@ router.post('/verify-payment', async (req, res) => {
         <div style="font-family: Arial, sans-serif;">
           <p>Hallo,</p>
           <p>anbei deine Rechnung für <strong>${order.gameName}</strong>.</p>
-          <p>Viel Spaß bei der Kiezjagd!</p>
-          <p>Dein Kiezjagd-Team</p>
+          <p>Viele Grüße und bis bald,\neure Fritz und Frida von Kiezjagd</p>
         </div>
       `,
       attachments: [
