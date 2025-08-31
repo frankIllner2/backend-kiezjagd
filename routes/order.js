@@ -278,7 +278,7 @@ router.post('/verify-payment', async (req, res) => {
         <div style="font-family: Arial, sans-serif; line-height: 1.5;">
           <p>Hallo ${order.customerName || ''},</p>
           <p>vielen Dank für deine Bestellung bei <strong>Kiezjagd</strong>! 
-            Im Anhang findest du die Rechnung für dein Spiel <strong>${order.gameName}</strong>.</p>
+            Im Anhang findest du die Rechnung für dein Spiel: <strong>${order.gameName}</strong>.</p>
 
           <p>Wir wünschen dir und deinem Team ganz viel Spaß beim Rätseln und Entdecken!</p>
 
