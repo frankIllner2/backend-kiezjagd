@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
     // Game-Titel nachladen (Fallbacks)
     let gameTitle = 'Kiezjagd';
     try {
-      const game = await Game.findById(gameId).lean();
+      const game = await Game.findOne({ encryptedId: gameId }).lean();
       if (game) {
         gameTitle = game.name || game.title || gameTitle;
       }
