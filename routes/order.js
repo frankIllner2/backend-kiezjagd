@@ -275,12 +275,18 @@ router.post('/verify-payment', async (req, res) => {
       to: order.email,
       subject: `Rechnung Kiezjagd #${String(order.invoiceNumber).padStart(3, '0')}`,
       html: `
-        <div style="font-family: Arial, sans-serif;">
-          <p>Hallo,</p>
-          <p>anbei deine Rechnung für <strong>${order.gameName}</strong>.</p>
-          <p>Viele Grüße und bis bald,\neure Fritz und Frida von Kiezjagd</p>
-        </div>
-      `,
+        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+          <p>Hallo ${order.customerName || ''},</p>
+          <p>vielen Dank für deine Bestellung bei <strong>Kiezjagd</strong>! 
+            Im Anhang findest du die Rechnung für dein Spiel <strong>${order.gameName}</strong>.</p>
+
+          <p>Wir wünschen dir und deinem Team ganz viel Spaß beim Rätseln und Entdecken!</p>
+
+          <p style="margin-top:20px;">
+            Herzliche Grüße<br/>
+            dein Kiezjagd-Team
+          </p>
+        </div>`,
       attachments: [
         {
           filename: `Rechnung-${String(order.invoiceNumber).padStart(3, '0')}.pdf`,

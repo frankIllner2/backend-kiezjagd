@@ -96,7 +96,7 @@ function generateCertificateBuffer({ team, result }) {
       doc.fontSize(16).text('hat das spannende Abenteuer', cardX, cursorY, { width: cardW, align: 'center' });
       cursorY += 36;
 
-      const gameTitle = result.gameTitle || result.gameType || 'Kiezjagd';
+      const gameTitle = result.gameTitle || 'Kiezjagd';
       doc.fontSize(26).text(gameTitle, cardX, cursorY, { width: cardW, align: 'center' });
       cursorY += 36;
 
