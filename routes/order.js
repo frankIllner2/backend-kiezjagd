@@ -276,7 +276,7 @@ router.post('/verify-payment', async (req, res) => {
       subject: `Rechnung Kiezjagd #${String(order.invoiceNumber).padStart(3, '0')}`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-          <p>Hallo ${order.customerName || ''},</p>
+          <p>Hallo,</p>
           <p>vielen Dank für deine Bestellung bei <strong>Kiezjagd</strong>! 
             Im Anhang findest du die Rechnung für dein Spiel: <strong>${order.gameName}</strong>.</p>
 
