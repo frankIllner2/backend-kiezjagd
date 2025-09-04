@@ -3,4 +3,4 @@ node_modules/
 uploads/
 tests/test-certificate.js
 tests/urkunde.pdf
-utils/generateCertificateBuffer.js
+utils/TestmaTestmailUrkunde
