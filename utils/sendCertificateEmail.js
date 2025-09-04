@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
-const path = require('path');          // ⬅️ neu
-const fs = require('fs');              // ⬅️ neu
+const path = require('path');   // ✅ neu/benötigt
+const fs = require('fs');       // ✅ neu/benötigt
 const { generateCertificateBuffer } = require('./generateCertificateBuffer');
 const Team = require('../models/Teams');
 const Result = require('../models/Result');
@@ -46,7 +46,6 @@ async function sendCertificate(resultId) {
   const result = await Result.findById(resultId);
   if (!result) throw new Error('Ergebnis nicht gefunden');
 
-  // Parallel laden: Team + Spiel (robust)
   const [team, game] = await Promise.all([
     Team.findOne({ name: result.teamName, gameId: result.gameId }),
     Game.findOne({ encryptedId: result.gameId }),
@@ -55,7 +54,6 @@ async function sendCertificate(resultId) {
   if (!team) throw new Error('Team nicht gefunden');
   if (!game) throw new Error(`Spiel nicht gefunden für gameId="${result.gameId}"`);
 
-  // robust: withCertificate oder (historisch) withCerticate
   const withCertificate =
     typeof game.withCertificate === 'boolean'
       ? game.withCertificate
@@ -65,31 +63,36 @@ async function sendCertificate(resultId) {
   const recipient = result.email || team.email;
   if (!recipient) throw new Error('Keine Empfänger-E-Mail vorhanden');
 
-  // Mail-HTML aus DB (Schema: mailtext), Fallback auf Standard
-  const mailTextFromDb = game.mailtext ?? game.mailText; // beides tolerieren
+  const mailTextFromDb = game.mailtext ?? game.mailText;
 
-  // 📁 Asset-Pfad und Inline-Images vorbereiten
-  const ASSETS_DIR = process.env.ASSETS_DIR || path.join(__dirname, 'assets');
+  // ✅ FIX: Inline-Images aus ../public/ laden (wie bei dir an anderer Stelle)
+  const logoPath = path.join(__dirname, '../public/logo.png');
+  const fritzPath = path.join(__dirname, '../public/fritz.png');
+  const fridaPath = path.join(__dirname, '../public/frida.png');
+
   const inlineImages = [];
-  const pushIfExists = (filename, cid) => {
+  const pushIfExists = (fullPath, cid) => {
     try {
-      const full = path.join(ASSETS_DIR, filename);
-      if (fs.existsSync(full)) {
-        inlineImages.push({ filename, path: full, cid });
+      if (fs.existsSync(fullPath)) {
+        inlineImages.push({
+          filename: path.basename(fullPath),
+          path: fullPath,
+          cid,                       // muss mit <img src="cid:..."> matchen
+          contentDisposition: 'inline',
+        });
       } else {
-        console.warn(`⚠️ Asset nicht gefunden: ${full}`);
+        console.warn('⚠️ Asset nicht gefunden:', fullPath);
       }
     } catch (e) {
-      console.warn(`⚠️ Konnte Asset nicht prüfen (${filename}):`, e.message);
+      console.warn('⚠️ Asset-Check fehlgeschlagen:', fullPath, e.message);
     }
   };
 
-  // Diese CIDs werden im HTML verwendet:
-  pushIfExists('logo.png',  'logo@kiezjagd');
-  pushIfExists('fritz.png', 'fritz@kiezjagd');
-  pushIfExists('frida.png', 'frida@kiezjagd');
+  pushIfExists(logoPath,  'logo@kiezjagd');
+  pushIfExists(fritzPath, 'fritz@kiezjagd');
+  pushIfExists(fridaPath, 'frida@kiezjagd');
 
-  // Standard-HTML (falls kein Admin-Template hinterlegt)
+  // Fallback-HTML (falls im Admin nichts hinterlegt ist)
   const defaultHtml = `
     <div style="font-family: 'Trebuchet MS', Arial, sans-serif; border-radius: 12px;">
       <!-- Logo oben links -->
@@ -114,13 +117,10 @@ async function sendCertificate(resultId) {
               Wir sind richtig stolz auf euch – ihr habt Rätsel gelöst, Geheimnisse entdeckt und euch tapfer durchgeschlagen.
             </p>
             <p style="font-size:16px; color:#333; margin: 0 0 12px;">
-              Als Erinnerung an euren Erfolg gratulieren wir euch herzlich – ihr seid jetzt offizielle Kiezjäger:innen!
-            </p>
-            <p style="font-size:16px; color:#333; margin: 0 0 12px;">
               Zeigt euren Erfolg euren Freundinnen und Freunden, hängt ihn an die Wand oder bewahrt ihn wie einen Schatz auf – denn ihr habt ihn euch wirklich verdient!
             </p>
             <p style="font-size:14px; color:#555; margin: 12px 0 0;">
-              Euer Kiezjagd-Team
+               Viele Grüße und bis bald, <br>eure Fritz und Frida von Kiezjagd
             </p>
           </td>
         </tr>
@@ -153,9 +153,8 @@ async function sendCertificate(resultId) {
     subject: `Eure Urkunde für "${gameName}"`,
     html,
     attachments: [
-      ...inlineImages,
-      // 📌 Falls du weiterhin ein PDF anhängen willst, lasse den folgenden Block aktiv.
-      //     Wenn NICHT, einfach den if-Block unten entfernen.
+      ...inlineImages, // ✅ inline via cid
+      // optional: PDF-Urkunde weiterhin mitsenden:
     ],
   };
 
