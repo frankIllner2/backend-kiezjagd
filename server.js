@@ -17,6 +17,9 @@ const teamRoutes = require('./routes/teams');
 const uploadRoutes = require('./routes/upload');
 const newsletter = require('./routes/newsletter');
 const questionRoutes = require('./routes/questions');
+const newsletterAdminRoutes = require("./routes/admin-newsletter");
+
+
 
 
 
@@ -89,6 +92,9 @@ app.use('/api/upload', uploadRoutes);         // Datei-Uploads
 app.use('/api/newsletter', newsletter); // Newsletter
 app.use('/api/questions', questionRoutes); // Fragen sortieren
 app.use('/api/teams', teamRoutes); // Teams
+app.use("/api/admin-newsletter", newsletterAdminRoutes); // Newsletter-Admin
+
+
 
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen
