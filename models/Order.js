@@ -8,7 +8,7 @@ const OrderSchema = new mongoose.Schema({
   price: Number,
   paymentStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
   startTime: { type: Date },
-  endTime: { type: Date },
+  endTime: { type: Date }, 
   isExpired: { type: Boolean, default: false },
   sessionId: { type: String }, // Stripe-Session-ID hinzufügen
   createdAt: { type: Date, default: Date.now },
