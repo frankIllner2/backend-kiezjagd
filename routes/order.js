@@ -329,14 +329,60 @@ router.get('/validate-link/:sessionId', async (req, res) => {
 /**
  * ✅ Bestellungen abrufen (Admin/Übersicht)
  */
+// routes/order.js  (nur die /orders-Route)
 router.get('/orders', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdTime: -1 });
-    return res.status(200).json(orders);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 200);
+    const search = (req.query.search || '').trim();
+    const searchBy = (req.query.searchBy || 'email').trim();
+    const sortParam = (req.query.sort || '-createdAt').trim();
+
+    const filter = {};
+    if (search) {
+      if (searchBy === 'email') {
+        filter.email = { $regex: escapeRegex(search), $options: 'i' };
+      } else if (searchBy === 'gameId') {
+        filter.gameId = { $regex: escapeRegex(search), $options: 'i' };
+      } else if (searchBy === 'date') {
+        const [from, to] = search.split('..');
+        if (from && !to) {
+          const start = new Date(from);
+          const end = new Date(from); end.setDate(end.getDate() + 1);
+          filter.createdAt = { $gte: start, $lt: end };
+        } else if (from && to) {
+          const start = new Date(from);
+          const end = new Date(to); end.setDate(end.getDate() + 1);
+          filter.createdAt = { $gte: start, $lt: end };
+        }
+      }
+    }
+
+    const sort = sortStrToObj(sortParam);
+    const [items, total] = await Promise.all([
+      // falls du kein createdAt hast, fällt auf createdTime zurück
+      Order.aggregate([
+        { $match: filter },
+        { $addFields: { _created: { $ifNull: ['$createdAt', '$createdTime'] } } },
+        { $sort: Object.keys(sort).length
+            ? Object.fromEntries(Object.entries(sort).map(([k,v]) => [k==='createdAt'?'_created':k, v]))
+            : { _created: -1, _id: -1 } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        { $project: { _created: 0 } },
+      ]),
+      Order.countDocuments(filter),
+    ]);
+
+    res.json({ items, total, page, pages: Math.max(Math.ceil(total / limit), 1) });
   } catch (error) {
-    console.error('❌ Fehler beim Abrufen der Bestellungen:', error?.message || error);
-    return res.status(500).json({ error: 'Fehler beim Abrufen der Bestellungen.' });
+    console.error('❌ /order/orders:', error);
+    res.status(500).json({ error: 'Fehler beim Abrufen der Bestellungen.' });
   }
 });
+
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function sortStrToObj(s){ if(!s) return { createdAt:-1 }; const f=s.replace(/^-/, ''); const d=s.startsWith('-')?-1:1; return {[f]:d}; }
+
 
 module.exports = router;
