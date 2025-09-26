@@ -9,7 +9,7 @@ const { verifyAdmin } = require('../middleware/auth');
 
   // Route: Alle Spiele abrufen
   router.get("/", async (req, res) => {
-    console.log('alle Spiele');
+   
     try {
       const isAdmin = req.query.admin === "true";
       console.log(isAdmin);
