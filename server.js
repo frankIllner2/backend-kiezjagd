@@ -20,9 +20,6 @@ const questionRoutes = require('./routes/questions');
 const newsletterAdminRoutes = require("./routes/admin-newsletter");
 
 
-
-
-
 // ✅ CronJobs aktivieren
 require('./cronJobs');
 
@@ -93,8 +90,6 @@ app.use('/api/newsletter', newsletter); // Newsletter
 app.use('/api/questions', questionRoutes); // Fragen sortieren
 app.use('/api/teams', teamRoutes); // Teams
 app.use("/api/admin-newsletter", newsletterAdminRoutes); // Newsletter-Admin
-
-
 
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen

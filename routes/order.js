@@ -103,9 +103,9 @@ router.post('/create-checkout-session', async (req, res) => {
     // Rechnungsnummer
     const invoiceNumber = await generateInvoiceNumber();
 
-    // Ablaufzeit: Link 72h gültig
+    // Ablaufzeit: Link 48h gültig
     const now = new Date();
-    const endTime = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    const endTime = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
     // Preis robust parsen
     const priceRaw = game.price;

@@ -66,7 +66,7 @@ async function sendGameLink(email, sessionId, gameId, gameName, price) {
         <table role="presentation" border="0" cellspacing="0" cellpadding="0">
           <tr>
             <td style="padding: 5px;">✅</td>
-            <td style="padding: 5px;">Mit einem Klick auf den Start-Button hast du 72 Stunden Zeit, um dein gewähltes Spiel einmalig zu spielen.</td>
+            <td style="padding: 5px;">Mit einem Klick auf den Start-Button hast du 48 Stunden Zeit, um dein gewähltes Spiel einmalig zu spielen.</td>
           </tr>
           <tr>
             <td style="padding: 5px;">✅</td>
