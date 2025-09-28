@@ -14,7 +14,65 @@ const { generateInvoiceBuffer } = require('../services/generateInvoice');
 // Helper: Prüfen, ob ein Wert eine valide Mongo ObjectId ist
 const isObjectId = (v) => mongoose.Types.ObjectId.isValid(v);
 
-// E-Mail Transport (einfach; identisch zu deinem Setup; passe ggf. an)
+// --- NEW: kleine Helfer
+function normalizePromoInput(input) {
+  return String(input || '')
+    .trim()
+    .replace(/[\u2010-\u2015\u2212]/g, '-') // typografische Striche → "-"
+    .replace(/\s+/g, '');                   // Whitespaces raus
+}
+function debugBytes(label, s) {
+  if (process.env.NODE_ENV === 'production') return;
+  const b = Buffer.from(String(s || ''), 'utf8');
+  console.log(label, JSON.stringify(String(s)), 'bytes:', [...b]);
+}
+/**
+ * Löst einen Kundeneingabe-String (z. B. "KJ-123456") in ein discounts-Objekt
+ * auf. Behandelt alles mit "-" ausschließlich als Promotion Code (nie als Coupon).
+ * Gibt { promotion_code: 'promo_...' } oder { coupon: '...' } zurück, sonst null.
+ * Wirft bei inaktivem Promo eine Fehlerkennung, um klarere Response zu liefern.
+ */
+async function resolveDiscount(stripeClient, raw) {
+  const code = normalizePromoInput(raw);
+
+  // Wenn Bindestrich drin → niemals als Coupon behandeln
+  if (code.includes('-') || /^promo_/i.test(code)) {
+    // 1) aktiver Promo-Code
+    let list = await stripeClient.promotionCodes.list({ code, active: true, limit: 1 });
+    if (list.data.length) return { promotion_code: list.data[0].id };
+
+    // 2) existiert aber inaktiv?
+    list = await stripeClient.promotionCodes.list({ code, limit: 1 });
+    if (list.data.length && !list.data[0].active) {
+      const err = new Error('Promotion code exists but is inactive');
+      err.code = 'PROMO_INACTIVE';
+      throw err;
+    }
+
+    // 3) falls versehentlich die ID eingegeben wurde
+    if (/^promo_\w+$/i.test(code)) return { promotion_code: code };
+
+    return null;
+  }
+
+  // Ohne "-" kann es eine Coupon-ID (z. B. "Ni91ZiOn" oder "coupon_...") sein
+  if (/^coupon_\w+$/i.test(code) || /^[A-Za-z0-9]{6,}$/.test(code)) {
+    try {
+      const c = await stripeClient.coupons.retrieve(code);
+      if (c?.valid) return { coupon: c.id };
+    } catch {
+      // ignore – fällt unten auf null zurück
+    }
+  }
+
+  // Letzter Versuch: Promo ohne Bindestrich
+  const list = await stripeClient.promotionCodes.list({ code, active: true, limit: 1 });
+  if (list.data.length) return { promotion_code: list.data[0].id };
+
+  return null;
+}
+
+// E-Mail Transport
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT || 587),
@@ -97,17 +155,15 @@ router.post('/create-checkout-session', async (req, res) => {
       return res.status(404).json({ message: '❌ Spiel nicht gefunden' });
     }
 
-    // Kanonische IDs
     const canonicalEncryptedId = game.encryptedId;
 
-    // Rechnungsnummer
     const invoiceNumber = await generateInvoiceNumber();
 
     // Ablaufzeit: Link 48h gültig
     const now = new Date();
     const endTime = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-    // Preis robust parsen
+    // Preis robust parsen (nur noch für Fallback / Rechnungsdarstellung)
     const priceRaw = game.price;
     const price =
       typeof priceRaw === 'number'
@@ -133,56 +189,57 @@ router.post('/create-checkout-session', async (req, res) => {
     await order.save();
     console.log('✅ Bestellung gespeichert:', order._id, 'für Spiel', canonicalEncryptedId);
 
-    // 🎟️ Discounts ermitteln (Promotion Code bevorzugt)
+    // 🎟️ Discounts ermitteln (Promotion Code bevorzugt, robust)
     const discounts = [];
-    if (voucherCode) {
+    if (voucherCode && typeof voucherCode === 'string') {
+      const raw = voucherCode;
+      const normalized = normalizePromoInput(raw);
+      debugBytes('voucherCode raw', raw);
+      debugBytes('voucherCode normalized', normalized);
+
       try {
-        const promo = await stripe.promotionCodes.list({
-          code: voucherCode,
-          active: true,
-          limit: 1
-        });
-        if (promo.data.length) {
-          discounts.push({ promotion_code: promo.data[0].id });
-        } else if (/^promo_/.test(voucherCode)) {
-          discounts.push({ promotion_code: voucherCode });
-        } else {
-          const c = await stripe.coupons.retrieve(voucherCode);
-          if (c?.valid) {
-            discounts.push({ coupon: voucherCode });
-          } else {
-            return res.status(400).json({
-              code: 'PROMO_CODE_INVALID',
-              error: 'Dieser Gutscheincode ist abgelaufen oder ungültig.'
-            });
-          }
+        const d = await resolveDiscount(stripe, normalized);
+        if (!d) {
+          return res.status(400).json({
+            code: 'PROMO_CODE_INVALID',
+            error: 'Dieser Gutscheincode ist abgelaufen oder ungültig.'
+          });
         }
+        discounts.push(d);
       } catch (e) {
-        console.warn('⚠️ Gutschein ungültig/Fehler:', e?.message || e);
-        return res.status(400).json({
-          code: 'PROMO_CODE_INVALID',
-          error: 'Dieser Gutscheincode ist abgelaufen oder ungültig.'
-        });
+        const msg = e?.code === 'PROMO_INACTIVE'
+          ? 'Dieser Gutscheincode ist nicht mehr aktiv.'
+          : 'Dieser Gutscheincode ist abgelaufen oder ungültig.';
+        console.warn('⚠️ Promo/Coupon nicht nutzbar:', e?.raw?.message || e?.message || e);
+        return res.status(400).json({ code: 'PROMO_CODE_INVALID', error: msg });
       }
+    }
+
+    // --- WICHTIG: echten Stripe Price verwenden, wenn du Restriktionen nutzt
+    const lineItems = [];
+    if (game.stripePriceId) {
+      lineItems.push({ price: game.stripePriceId, quantity: 1 });
+    } else {
+      // Fallback – funktioniert, wenn KEINE Produkt/Price-Restriktion verwendet wird
+      console.warn('⚠️ Kein stripePriceId am Game – nutze price_data Fallback (Promo-Restriktionen greifen so ggf. nicht).');
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: game.name },
+          unit_amount: Math.round(price * 100)
+        },
+        quantity: 1
+      });
     }
 
     // Stripe-Session erstellen
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       metadata: { gameId: canonicalEncryptedId },
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: game.name },
-            unit_amount: Math.round(price * 100)
-          },
-          quantity: 1
-        }
-      ],
+      line_items: lineItems,
       mode: 'payment',
       discounts, // [] ist ok
-      // allow_promotion_codes: true, // optional
+      allow_promotion_codes: true, // Eingabefeld im Stripe UI zusätzlich erlauben
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`
     });
@@ -329,7 +386,6 @@ router.get('/validate-link/:sessionId', async (req, res) => {
 /**
  * ✅ Bestellungen abrufen (Admin/Übersicht)
  */
-// routes/order.js  (nur die /orders-Route)
 router.get('/orders', async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
@@ -360,7 +416,6 @@ router.get('/orders', async (req, res) => {
 
     const sort = sortStrToObj(sortParam);
     const [items, total] = await Promise.all([
-      // falls du kein createdAt hast, fällt auf createdTime zurück
       Order.aggregate([
         { $match: filter },
         { $addFields: { _created: { $ifNull: ['$createdAt', '$createdTime'] } } },
@@ -383,6 +438,5 @@ router.get('/orders', async (req, res) => {
 
 function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 function sortStrToObj(s){ if(!s) return { createdAt:-1 }; const f=s.replace(/^-/, ''); const d=s.startsWith('-')?-1:1; return {[f]:d}; }
-
 
 module.exports = router;
