@@ -12,10 +12,9 @@ const { verifyAdmin } = require('../middleware/auth');
    
     try {
       const isAdmin = req.query.admin === "true";
-      console.log(isAdmin);
       const query = isAdmin ? {} : { isDisabled: { $ne: true } }; // Admin sieht alles
 
-      const games = await Game.find(query);
+      const games = await Game.find(query).sort({ sortIndex: 1, name: 1 });
       res.json(games);
     } catch (err) {
       console.error("Fehler beim Abrufen der Spiele:", err);

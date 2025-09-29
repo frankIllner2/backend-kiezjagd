@@ -47,6 +47,7 @@ const GameSchema = new mongoose.Schema({
   startloction: { type: String, required: true },
   endloction: { type: String, required: true },
   price: { type: String, required: true },
+  sortIndex: { type: Number, default: 9999, index: true },
   questions: [QuestionSchema],
 });
 
