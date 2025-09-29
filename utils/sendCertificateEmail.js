@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
-const path = require('path');   // ✅ neu/benötigt
-const fs = require('fs');       // ✅ neu/benötigt
+const path = require('path');   // ✅ benötigt
+const fs = require('fs');       // ✅ benötigt
 const { generateCertificateBuffer } = require('./generateCertificateBuffer');
 const Team = require('../models/Teams');
 const Result = require('../models/Result');
@@ -54,10 +54,11 @@ async function sendCertificate(resultId) {
   if (!team) throw new Error('Team nicht gefunden');
   if (!game) throw new Error(`Spiel nicht gefunden für gameId="${result.gameId}"`);
 
-  const withCertificate =
-    typeof game.withCertificate === 'boolean'
-      ? game.withCertificate
-      : Boolean(game.withCerticate);
+  // ✅ Nur wenn "withCertificate" true ist → Mail + Urkunde
+  if (!game.withCertificate) {
+    console.log(`📭 Kein Mailversand für Spiel "${game.name}" (withCertificate=false).`);
+    return { status: 'skipped', reason: 'withCertificate_disabled' };
+  }
 
   const gameName = game.name || result.gameType || 'Kiezjagd';
   const recipient = result.email || team.email;
@@ -65,7 +66,7 @@ async function sendCertificate(resultId) {
 
   const mailTextFromDb = game.mailtext ?? game.mailText;
 
-  // ✅ FIX: Inline-Images aus ../public/ laden (wie bei dir an anderer Stelle)
+  // ✅ Inline-Images aus ../public/ laden
   const logoPath = path.join(__dirname, '../public/logo.png');
   const fritzPath = path.join(__dirname, '../public/fritz.png');
   const fridaPath = path.join(__dirname, '../public/frida.png');
@@ -152,27 +153,21 @@ async function sendCertificate(resultId) {
     to: recipient,
     subject: `Eure Urkunde für "${gameName}"`,
     html,
-    attachments: [
-      ...inlineImages, // ✅ inline via cid
-      // optional: PDF-Urkunde weiterhin mitsenden:
-    ],
+    attachments: [...inlineImages],
   };
 
-  if (withCertificate) {
-    const buffer = await generateCertificateBuffer({ team, result });
-    mailOptions.attachments.push({
-      filename: `Urkunde-${team.name}.pdf`,
-      content: buffer,
-      contentType: 'application/pdf',
-    });
-  } else {
-    console.log(`Urkundenanhang deaktiviert (withCertificate=false) für Spiel ${game.name}`);
-  }
+  // ✅ Urkunde anhängen (da withCertificate garantiert true ist)
+  const buffer = await generateCertificateBuffer({ team, result });
+  mailOptions.attachments.push({
+    filename: `Urkunde-${team.name}.pdf`,
+    content: buffer,
+    contentType: 'application/pdf',
+  });
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log(withCertificate ? '✅ Mail + Urkunde versendet:' : '✅ Mail (ohne Urkunde) versendet:', info.response);
-    return { status: 'sent', withCertificate, response: info.response };
+    console.log('✅ Mail + Urkunde versendet:', info.response);
+    return { status: 'sent', withCertificate: true, response: info.response };
   } catch (error) {
     console.error('❌ Fehler beim Mailversand:', error.message);
     throw error;
