@@ -26,10 +26,13 @@ router.post('/', async (req, res) => {
     });
 
     res.status(201).json(newTeam);
-  } catch (error) {
-    console.error('❌ Fehler beim Team-Speichern:', error);
-    res.status(500).json({ message: 'Interner Fehler beim Speichern des Teams' });
-  }
+    } catch (error) {
+      if (error && error.code === 11000) {
+        return res.status(409).json({ message: 'Teamname bereits vergeben' });
+      }
+      console.error('❌ Fehler beim Team-Speichern:', error);
+      return res.status(500).json({ message: 'Interner Fehler beim Speichern des Teams' });
+    }
 });
 
 module.exports = router;

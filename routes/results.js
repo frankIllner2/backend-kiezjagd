@@ -89,19 +89,29 @@ router.get('/', async (req, res) => {
 // Teamnamen prüfen (pro Spiel)
 router.get('/check', async (req, res) => {
   const { teamName, gameId } = req.query;
-
   if (!teamName || !gameId) {
     return res.status(400).json({ message: 'Teamname und Spiel-ID sind erforderlich.' });
   }
 
+  const normalize = (s) => (s || '').normalize('NFKC').replace(/\s+/g, ' ').trim();
+  const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   try {
-    const existing = await Result.findOne({ teamName, gameId }).lean();
-    res.json({ exists: !!existing }); // { exists: true/false }
+    const norm = normalize(teamName);
+    // Baue regex: Worte getrennt durch \s+, exakter Match:
+    const pattern = '^' + escapeRegex(norm).replace(/\s+/g, '\\s+') + '$';
+    const existing = await Result.findOne({
+      gameId,
+      teamName: { $regex: pattern, $options: 'i' },
+    }).lean();
+
+    return res.json({ exists: !!existing });
   } catch (error) {
-    console.error('❌ Fehler beim Prüfen des Teamnamens:', error);
-    res.status(500).json({ message: 'Fehler bei der Teamnamenprüfung' });
+    console.error('❌ Fehler bei der Teamnamenprüfung:', error);
+    return res.status(500).json({ message: 'Fehler bei der Teamnamenprüfung' });
   }
 });
+
 
 /*
 // GET: Ergebnisse für ein bestimmtes Spiel abrufen
