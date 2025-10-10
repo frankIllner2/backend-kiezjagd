@@ -18,6 +18,7 @@ const uploadRoutes = require('./routes/upload');
 const newsletter = require('./routes/newsletter');
 const questionRoutes = require('./routes/questions');
 const newsletterAdminRoutes = require("./routes/admin-newsletter");
+const ranking = require('./routes/ranking');
 
 
 // ✅ CronJobs aktivieren
@@ -90,7 +91,7 @@ app.use('/api/newsletter', newsletter); // Newsletter
 app.use('/api/questions', questionRoutes); // Fragen sortieren
 app.use('/api/teams', teamRoutes); // Teams
 app.use("/api/admin-newsletter", newsletterAdminRoutes); // Newsletter-Admin
-
+app.use('/api/rankings', ranking); // Ranking
 
 // ✅ Fehlerbehandlung für nicht vorhandene Routen
 app.use((req, res) => {

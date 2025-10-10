@@ -9,6 +9,7 @@ const teamSchema = new mongoose.Schema({
   endTime: { type: Date },
 });
 
-teamSchema.index({ gameId: 1, name: 1 }, { unique: true })
+teamSchema.index({ gameId: 1, endTime: 1 });
+teamSchema.index({ gameId: 1, startTime: 1 });
 
 module.exports = mongoose.model('Team', teamSchema);
