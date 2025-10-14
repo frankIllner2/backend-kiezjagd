@@ -284,25 +284,32 @@ router.put('/:encryptedId/questions/:questionId', async (req, res) => {
  */
 router.get('/:encryptedId/top8', async (req, res) => {
   try {
-    const game = await Game.findOne({ encryptedId: req.params.encryptedId }, { name: 1 }).lean();
-    if (!game) {
-      return res.status(404).json({ message: '❌ Spiel nicht gefunden - /:encryptedId/top8' });
-    }
+    const game = await Game.findOne({ encryptedId: req.params.encryptedId }).lean();
+    if (!game) return res.status(404).json({ message: '❌ Spiel nicht gefunden - /:encryptedId/top8' });
 
     const topResults = await Result.find({ gameId: req.params.encryptedId })
       .sort({ duration: 1 })
-      .limit(7) // historisch 7
+      .limit(8)
+      .select('teamName duration stars gameType startTime') // <— hier
       .lean();
 
     res.json({
       gameName: game.name,
-      topResults,
+      landingPageUrl: game.landingPageUrl || `/spiel/${game.encryptedId}`,
+      topResults: topResults.map(r => ({
+        teamName: r.teamName || r.name || r.team || '',
+        duration: r.duration,
+        stars: r.stars,
+        gameType: r.gameType,          // <— weiterreichen
+        startTime: r.startTime,
+      })),
     });
   } catch (error) {
     console.error('❌ Fehler beim Abrufen der Top 8 Ergebnisse:', error);
     res.status(500).json({ message: '❌ Interner Serverfehler', error: error.message });
   }
 });
+
 
 /**
  * 🔹 PUT /api/games/games/encrypted/:encryptedId/questions/:questionId
