@@ -61,7 +61,17 @@ const GameSchema = new mongoose.Schema({
   landingPageUrl: { type: String },
   mailtext: { type: String },
 
+  // Alt-Flag (legacy)
   isDisabled: { type: Boolean, default: false },
+
+  // Aktivierungsfenster + Serientermin
+  activation: {
+    enabled: { type: Boolean, default: false },
+    from:   { type: Date, default: null },   // UTC ISO
+    until:  { type: Date, default: null },   // UTC ISO
+    repeatYearly: { type: Boolean, default: false }, // 🔁 jährlich wiederkehrend
+  },
+
   isVoucher: { type: Boolean, default: false },
   withCertificate: { type: Boolean, default: false },
   voucherName: { type: String },
@@ -98,17 +108,53 @@ GameSchema.pre('save', function (next) {
   next();
 });
 
-// 🛠️ Auch bei Updates per findOneAndUpdate questionsCount mitziehen,
-// wenn questions direkt ersetzt/gesetzt werden
+// 🧠 Aktivitätsprüfung: jetzt aktiv? (inkl. jährlich wiederkehrend)
+GameSchema.methods.isActiveNow = function (now = new Date()) {
+  const a = this.activation || {};
+  if (!a.enabled) return false;
+
+  // Einfacher Modus ohne Wiederholung
+  if (!a.repeatYearly) {
+    const fromOk = !a.from || now >= a.from;
+    const untilOk = !a.until || now <= a.until;
+    return fromOk && untilOk;
+  }
+
+  // Jährlich wiederkehrend: wir übertragen Monat/Tag(+Zeit) auf das laufende Jahr
+  if (!a.from || !a.until) return false; // für Serientermin brauchen wir beide Enden
+
+  const y = now.getUTCFullYear();
+  const mkUTC = (tpl, year) => new Date(Date.UTC(
+    year,
+    tpl.getUTCMonth(),
+    tpl.getUTCDate(),
+    tpl.getUTCHours(),
+    tpl.getUTCMinutes(),
+    tpl.getUTCSeconds(),
+    tpl.getUTCMilliseconds(),
+  ));
+
+  const startThisYear = mkUTC(a.from, y);
+  const endThisYear = mkUTC(a.until, y);
+
+  if (endThisYear >= startThisYear) {
+    // normales Fenster (selbes Jahr)
+    return now >= startThisYear && now <= endThisYear;
+  } else {
+    // Cross-Year (z. B. 01.11.–15.02.)
+    const endNextYear = mkUTC(a.until, y + 1);
+    const startPrevYear = mkUTC(a.from, y - 1);
+    return (now >= startThisYear && now <= endNextYear) || (now >= startPrevYear && now <= endThisYear);
+  }
+};
+
+// 🛠️ Auch bei Updates per findOneAndUpdate questionsCount mitziehen
 GameSchema.pre('findOneAndUpdate', function (next) {
   const update = this.getUpdate() || {};
-  // Wenn $set.questions oder questions direkt gesetzt werden
   const newQuestions =
     (update.$set && update.$set.questions) ??
     update.questions;
-
   if (Array.isArray(newQuestions)) {
-    // $set.questionsCount setzen, damit es atomar mit gespeichert wird
     if (!update.$set) update.$set = {};
     update.$set.questionsCount = newQuestions.length;
     this.setUpdate(update);
@@ -116,7 +162,6 @@ GameSchema.pre('findOneAndUpdate', function (next) {
   next();
 });
 
-// Optional: kleines Helferchen, wenn du serverseitig bewusst aktualisieren willst
 GameSchema.methods.recountQuestions = function () {
   this.questionsCount = Array.isArray(this.questions) ? this.questions.length : 0;
   return this.questionsCount;
