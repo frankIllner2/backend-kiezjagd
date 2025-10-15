@@ -50,7 +50,8 @@ router.get("/", async (req, res) => {
       "encryptedId","gameImage","name","plz","ageGroup",
       "startloction","endloction","price","description",
       "activation.enabled","activation.from","activation.until","activation.repeatYearly",
-      "sortIndex"
+      "sortIndex",
+      "playtime"
     ];
 
     const parseFields = (fp) =>
