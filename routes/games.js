@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
 
     // Felder, die wir für UI & Filter brauchen
     const mustHave = [
-      "encryptedId","gameImage","name","plz","ageGroup",
+      "encryptedId","gameImage","name","plz","ageGroup", "isVoucher","withCertificate",
       "startloction","endloction","price","description",
       "activation.enabled","activation.from","activation.until","activation.repeatYearly",
       "sortIndex",
