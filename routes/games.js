@@ -192,7 +192,7 @@ router.post("/:encryptedId/verify-location", async (req, res) => {
       question.coordinates.lat, question.coordinates.lon
     );
 
-    if (distance <= 30) {
+    if (distance <= 15) {
       res.json({ success: true, message: "Standort korrekt!" });
     } else {
       res.json({ success: false, message: "Zu weit entfernt!" });
